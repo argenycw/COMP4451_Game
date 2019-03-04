@@ -56,6 +56,16 @@
 			return platform;
 		}
 
+		// ==================================================================
+		// # Map Related Functions
+		// ==================================================================
+
+		function getMapElement(z, x) {
+			if (currentMap == null || currentMap.length == 0) return null;
+			if (z < 0 || x < 0 || z > currentMap.length-1 || x > currentMap[0].length-1) return null;
+			return currentMap[z][x];
+		}
+
 		// Load a map from the server and create the respective level accordingly
 		function loadMap(scene, camera, map) {
 			var request = new XMLHttpRequest();
@@ -154,15 +164,16 @@
 		function playerFall() {
 			if (player.velocityY == 0) return;
 			// Case: Landing
-			if (player.position.y < c_charDefaultPosY && currentMap[playerZ][playerX]) {
+			let platform = getMapElement(playerZ, playerX);
+			if (player.position.y < c_charDefaultPosY && platform) {
 				// Cancel all speeds
 				player.velocityX = 0;
 				player.velocityY = 0;
 				player.velocityZ = 0;
 				// Fix the landing position to the center of the platform
 				player.position.y = c_charDefaultPosY;
-				player.position.x = currentMap[playerZ][playerX].position.x;
-				player.position.z = currentMap[playerZ][playerX].position.z;
+				player.position.x = platform.position.x;
+				player.position.z = platform.position.z;
 				// Handle unperformed movement
 				if (nextMovement) {
 					movePlayer(nextMovement[0], nextMovement[1]);
@@ -194,7 +205,6 @@
 			player.velocityZ = (c_PlatformSize[2] + c_PlatformSep) * dirZ * (c_fallSpeed / c_jumpInitVelocity / 2);
 			playerX += dirX;
 			playerZ += dirZ;
-			console.log(playerZ, playerX, currentMap[playerZ][playerX]);
 		}
 
 		// Initial setup
