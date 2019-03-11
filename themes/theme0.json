@@ -1,0 +1,27 @@
+{
+	"background": {
+		"color": "#282828"
+	},
+	"blockArea": {
+		"width": "15%",
+		"color": "#111"
+	},
+	"hitArea": {
+		"width": "6%"
+	},
+	"flashArea": {
+		"width": "20%",
+		"color": "#0030c0",
+		"fade": 1000
+	},
+	"hitCenter": {
+		"x": "20%",
+		"radius": "3vh",
+		"color": "#ffffff"
+	},
+	"notes": {
+		"fillColor": "#a1a250",
+		"strokeColor": "#000000",
+		"radius": "3vh"
+	}
+}

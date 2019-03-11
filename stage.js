@@ -1,36 +1,59 @@
-// ===============================================
+// #================================================================#
+// #                            STAGE.JS                            #
+// #----------------------------------------------------------------#
+// # This module handles the creation of the stage and the platforms#
+// # construction.													#
+// # This is the outest class for a stage                           #
+// #================================================================#
+//
+// # Dependencies:
+//
+// - RoundEdgedBox.js
+//
+// ==================================================================
 // # Constants
-const c_FPS = 30;
-const c_PlatformSize = [10, 2, 10];
-const c_PlatformSep = 2;
+const mapFolder = 'maps/';
+const c_FPS = 45;
+const c_PlatformSize = [14, 4, 14];
+const c_PlatformSep = 1;
+const c_PlatformDefRadius = 2		// the default edge corner radius of each platform
 const c_charRadius = 2.5;			// the half of the height of the player
-const c_charDefaultPosY = c_charRadius + 0.5;
+const c_charDefaultPosY = c_charRadius + 1;
 const c_shadowSquareSize = 300;		// the size of the square of the directional light casting on the map
 const c_shadowStrength = 4096;		// the strength of the directional light casting on the map
-const c_jumpInitVelocity = 15;
-const c_fallSpeed = 25;
+const c_jumpInitVelocity = 20;
+const c_fallSpeed = 100;
+// (c_jumpInitVelocity / c_fallSpeed) * 2 => time needed to jump across ONE platform
 
 const directionX = Object.freeze({"LEFT":1, "RIGHT":-1, "NULL":0});
 const directionZ = Object.freeze({"UP":1, "DOWN":-1, "NULL":0}); 
+const platformTypes = Object.freeze({"NORMAL":0, "DESTINATION":1});
 // ===============================================
 // # Global objects and variables
+var paused = false;					// Should the animation stuff be paused
+var nextRemaining = 0;
+var animationInterval = null;
+
 var scene = null;
 var camera = null;
+var audioListener = null;
 var renderer = null;
 
 var player = null;
 var playerX = 0, playerZ = 0;		// save the x and z position in currentMap
 var currentMap = [];
 var nextMovement = null;			// To make a smooth control, save the next movement to perform
+var losingY = -100;					// The minimum y the player can reach not to lose
 
-// ===============================================
+// ==================================================================
 function animate() {
-	requestAnimationFrame(animate);
+	// requestAnimationFrame(animate);	
 	if (player) {
 		playerFall();
 		camera.position.set(player.position.x, 20, player.position.z - 20);
 		camera.lookAt(player.position.x, 0, player.position.z);
 	}
+	moveNotes();
 	renderer.render(scene, camera);
 }
 
@@ -46,21 +69,36 @@ function stageInit(sceneObject) {
 	camera.lookAt(new THREE.Vector3(0, 0, 20));
 
 	// Create and append a canvas object into DOM
+	var canvas = document.getElementById("canvas");
 	renderer = new THREE.WebGLRenderer({antialias: true});
-	renderer.setPixelRatio( window.devicePixelRatio );
-	renderer.setSize( window.innerWidth, window.innerHeight );
+	renderer.setPixelRatio(window.devicePixelRatio);
+	renderer.setSize( window.innerWidth, window.innerHeight);
 	renderer.shadowMap.enabled = true;
 	renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+	renderer.domElement.setAttribute("id", "canvas");
 	document.body.appendChild(renderer.domElement);
 
 	// make the "fog"
 	var fogAttr = sceneObject.fog;
 	if (fogAttr) {
 		scene.fog = new THREE.Fog(fogAttr.color, fogAttr.near, fogAttr.far);
+		losingY = -fogAttr.far;
 	}
+
+	// AudioListener for audio
+	audioListener = new THREE.AudioListener();
+	camera.add(audioListener);
+
+	// Listener for window resize
+	window.addEventListener('resize', function() {
+	    renderer.setSize(window.innerWidth, window.innerHeight);		
+		camera.aspect = window.innerWidth / window.innerHeight;
+	    camera.updateProjectionMatrix();
+	}, false);
 
 	// Listener for keyboard input
 	document.addEventListener("keydown", onKeyDown);
+	return;
 }
 
 function getMapElement(z, x) {
@@ -70,21 +108,19 @@ function getMapElement(z, x) {
 }
 
 // Create a single rectangular platform
-// source (string): location of the image
 function renderPlatform(platformAttr) {
 	var source = platformAttr.texture;
-	var geometry = new THREE.BoxGeometry(c_PlatformSize[0], c_PlatformSize[1], c_PlatformSize[2]);
-	var texture = new THREE.TextureLoader().load(source);
-	var material = new THREE.MeshLambertMaterial({map: texture});
-	// var material = new THREE.MeshLambertMaterial();
-	// material.color = new THREE.Color(0x00ff00);
-	var platform = new THREE.Mesh(geometry, material);
+	var radius = platformAttr.edgeRadius ? platformAttr.edgeRadius : c_PlatformDefRadius;
+	var box = RoundEdgedBox(c_PlatformSize[0], c_PlatformSize[1], c_PlatformSize[2], radius);
+	// var box = new THREE.CubeGeometry(c_PlatformSize[0], c_PlatformSize[1], c_PlatformSize[2]);
+	var textureTop = new THREE.MeshLambertMaterial({map: new THREE.TextureLoader().load(source.top)});
+	var textureSide = new THREE.MeshLambertMaterial({map: new THREE.TextureLoader().load(source.others)});
+	var materials = [textureSide, textureSide, textureSide, textureSide, textureTop, textureSide];
+	var platform = new THREE.Mesh(box, materials);
 	platform.receiveShadow = platformAttr.receiveShadow;
 	return platform;
 }
 
-// input: 
-// size (int), gradientRect (1D Array [4]), colorStop (2D Array[][2])
 function renderSky(skyObject) {
 	// Extract data
 	var size = skyObject.size;
@@ -136,13 +172,15 @@ function buildPlatforms(stage, platformAttr) {
 		for (var j = 0; j < row.length; j++) {
 			switch (row[j]) {
 			case 'P':
-				var platform = renderPlatform(platformAttr);
+				var platform = renderPlatform(platformAttr.normal);
+				platform.type = platformTypes.NORMAL;
 				platform.position.set(j * (c_PlatformSize[0] + c_PlatformSep), 0, i * (c_PlatformSize[2] + c_PlatformSep));
 				scene.add(platform);
 				mapRow.push(platform);							
 				break;
 			case 'S':
-				var platform = renderPlatform(platformAttr);
+				var platform = renderPlatform(platformAttr.normal);
+				platform.type = platformTypes.NORMAL;
 				var x_mid = j * (c_PlatformSize[0] + c_PlatformSep);
 				platform.position.set(x_mid, 0, i * (c_PlatformSize[2] + c_PlatformSep));
 				scene.add(platform);
@@ -157,7 +195,8 @@ function buildPlatforms(stage, platformAttr) {
 				mapRow.push(platform);				
 				break;
 			case 'F':
-				var platform = renderPlatform(platformAttr);
+				var platform = renderPlatform(platformAttr.destination);
+				platform.type = platformTypes.DESTINATION;
 				platform.position.set(j * (c_PlatformSize[0] + c_PlatformSep), 0, i * (c_PlatformSize[2] + c_PlatformSep));
 				scene.add(platform);
 				mapRow.push(platform);								
@@ -171,44 +210,85 @@ function buildPlatforms(stage, platformAttr) {
 	}
 }
 
-// Load a map from the server and create the respective level accordingly
-function loadMap(map) {
-	var request = new XMLHttpRequest();
-	request.open('GET', 'maps/' + map);
-	request.onreadystatechange = function() {
-		if (request.readyState == 4 && request.status == 200) {
-			var content;
-			try {
-		 		content = JSON.parse(request.responseText);
-		 	}
-		 	catch (err) {
-		 		// TODO error msg
-		 		console.log("Unable to load map.");
-		 		return;
-		 	}
-		 	// Initialize
-		 	stageInit(content.scene);
-		 	// Render the sky
-		 	scene.background = renderSky(content.sky);
-		 	// light setting
-		 	setLight(content.light);				 	
-		 	// Render the platforms
-		 	buildPlatforms(content.stage, content.platform);
-		 	animate();
-		}
-		else if (request.readyState == 4) {
-			// TODO handle if map is not found
-			alert("Unable to find or open map: " + map);
-			return;
-		}
+// The callback actions when the map is succesfully loaded
+function stageOnSuccessLoad(content) {
+	 // Initialize
+ 	stageInit(content.scene);
+ 	// Render the sky
+ 	scene.background = renderSky(content.sky);
+ 	// light setting
+ 	setLight(content.light);				 	
+ 	// Render the platforms
+ 	buildPlatforms(content.stage, content.platform);
+ 	// Set the interval with a specific FPS
+ 	animationInterval = setInterval(function() {requestAnimationFrame(animate);}, 1000 / c_FPS);
+}
+
+// This function pauses/resumes everything that refreshes in the game
+function gamePauseToggle() {
+	// Pause
+	if (!paused) {
+		// Set the pause flag
+		paused = true;
+		resourceLoader.song.pause();
+		clearInterval(animationInterval);
+		nextRemaining = getTimeout(nextNoteTimeout);
+		console.log(nextRemaining);
+		clearTimeout(nextNoteTimeout);
+		// change the svg icon as well
+		var pauser = widget.getWidget("pause-resume");
+		pauser.setAttribute("href", "#svg-play");
 	}
-	request.send();
+	// Resume
+	else {
+		resourceLoader.song.play();
+		animationInterval = setInterval(function() {requestAnimationFrame(animate);}, 1000 / c_FPS);
+		nextNoteTimeout = setTimeout(checkNextNote, nextRemaining);
+		// unset the pause flag
+		paused = false;
+		// change the svg icon as well
+		var pauser = widget.getWidget("pause-resume");
+		pauser.setAttribute("href", "#svg-pause");		
+	}
+}
+
+// When the player wins the currentStage
+function stageClear() {
+	// stop the game
+	if (!paused) gamePauseToggle();
+	// Fade out background
+	widget.fadeScreenWhite(5000);
+	// display the dialog of winning	
+	var dialog = widget.showDialog("25%", "25%", "50%", "50%", ["green-dialog"], "clearing-dialog");
+	var clearMsg = widget.createSimpleText("Stage Clear", "50%", "30%", ["cubic", "green-rect-text"], "5vw");
+	var nextBtn = widget.createRectButton("Next Level", "30%", "45%", "40%", "20%", ["green-rect-btn", "cubic"]);
+	var backBtn = widget.createRectButton("Back to Menu", "30%", "70%", "40%", "20%", ["green-rect-btn", "cubic"]);
+	dialog.appendChild(clearMsg);
+	dialog.appendChild(nextBtn);
+	dialog.appendChild(backBtn);
+}
+
+// When the player loses the currentStage for any reason
+function stageFail() {
+	// stop the game
+	if (!paused) gamePauseToggle();
+	// Fade out background
+	widget.fadeScreenWhite(5000);
+	// display the dialog of losing
+	var dialog = widget.showDialog("25%", "25%", "50%", "50%", ["brown-dialog"], "losing-dialog");
+	var gameoverMsg = widget.createSimpleText("Game Over", "50%", "30%", ["cubic", "brown-rect-text"], "5vw");
+	var restartBtn = widget.createRectButton("Restart", "30%", "45%", "40%", "20%", ["brown-rect-btn", "cubic"]);
+	var backBtn = widget.createRectButton("Back to Menu", "30%", "70%", "40%", "20%", ["brown-rect-btn", "cubic"]);
+	dialog.appendChild(gameoverMsg);
+	dialog.appendChild(restartBtn);
+	dialog.appendChild(backBtn);
 }
 
 // ==================================================================
 // # Player Related Functions
 // ==================================================================
 function onKeyDown(event) {
+	if (paused) return;
 	var keyCode = event.which;
 	switch (keyCode) {
 	case 87: // W
@@ -250,10 +330,13 @@ function createPlayer(x_mid) {
 
 // To handle the jumping/falling motion of the player
 function playerFall() {
-	if (player.velocityY == 0) return;
+	if (player.velocityX == 0 && player.velocityY == 0 && player.velocityZ == 0) return;
+	// Y axis rising/falling
+	player.position.y += player.velocityY / c_FPS;
+	player.velocityY -= c_fallSpeed / c_FPS;	
 	// Case: Landing
 	let platform = getMapElement(playerZ, playerX);
-	if (player.position.y < c_charDefaultPosY && platform) {
+	if (player.velocityY < 0 && player.position.y - c_charDefaultPosY <= 0.001 && platform) {
 		// Cancel all speeds
 		player.velocityX = 0;
 		player.velocityY = 0;
@@ -262,6 +345,11 @@ function playerFall() {
 		player.position.y = c_charDefaultPosY;
 		player.position.x = platform.position.x;
 		player.position.z = platform.position.z;
+		// Check if the player is landing on the destination (Winning)
+		if (platform.type == platformTypes.DESTINATION) {
+			stageClear();
+			return;
+		}
 		// Handle unperformed movement
 		if (nextMovement) {
 			movePlayer(nextMovement[0], nextMovement[1]);
@@ -270,18 +358,19 @@ function playerFall() {
 	}
 	// Case: Jumping / Falling
 	else {
-		// Y axis rising/falling
-		player.position.y += player.velocityY / c_FPS;
-		player.velocityY -= c_fallSpeed / c_FPS;
 		// X and Z axis moving
 		player.position.x += player.velocityX / c_FPS;
 		player.position.z += player.velocityZ / c_FPS;
+		// Check if the player "loses" by falling out from the platforms
+		if (player.position.y < losingY) stageClear();
 	}
 }
 
 
 function movePlayer(dirX=0, dirZ=0) {
 	if (!player) return;
+	// Unable to jump when there is no notes
+	if (!jumpable()) return;
 	if (player.velocityY != 0) {
 		// If the player almost lands, save the next action to perform immediately after landing
 		if (player.velocityY < 0 && player.position.y < c_charDefaultPosY * 2)
@@ -293,4 +382,26 @@ function movePlayer(dirX=0, dirZ=0) {
 	player.velocityZ = (c_PlatformSize[2] + c_PlatformSep) * dirZ * (c_fallSpeed / c_jumpInitVelocity / 2);
 	playerX += dirX;
 	playerZ += dirZ;
+	successJumpClearup();
 }
+
+// A variable storing a getTimeout function
+var getTimeout = (function() { // IIFE
+    var _setTimeout = setTimeout, // Reference to the original setTimeout
+        map = {}; // Map of all timeouts with their start date and delay
+
+    setTimeout = function(callback, delay) { // Modify setTimeout
+        var id = _setTimeout(callback, delay); // Run the original, and store the id
+
+        map[id] = [Date.now(), delay]; // Store the start date and delay
+
+        return id; // Return the id
+    };
+
+    return function(id) { // The actual getTimeLeft function
+        var m = map[id]; // Find the timeout in map
+
+        // If there was no timeout with that id, return NaN, otherwise, return the time left clamped to 0
+        return m ? Math.max(m[1] - Date.now() + m[0], 0) : NaN;
+    }
+})();

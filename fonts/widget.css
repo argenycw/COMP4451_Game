@@ -1,0 +1,89 @@
+@font-face {
+	font-family: "Requires Moonshine";
+	src: url("/fonts/Requires Moonshine.otf");
+}
+
+.cubic {
+	font-family: "Requires Moonshine";
+	text-anchor: middle;
+}
+
+.black-4-white {
+	stroke: black;
+	stroke-width: 4;
+	fill: white;
+}
+
+/* circle-buttons */
+.black-round-btn {
+	fill: black;
+	cursor: pointer;
+}
+
+.black-round-btn:hover {
+	fill: white;
+}
+
+
+/* Green series: for winning dialog */
+.green-dialog {
+	stroke: #209030;
+	stroke-width: 0.5vw;
+	fill: #ccffdd;
+}
+
+.green-rect-text {
+	stroke: #209030;
+	stroke-width: 0.4vw;
+	fill: #ccffdd;	
+}
+
+.green-rect-btn rect {
+	stroke: #209030;
+	stroke-width: 0.4vw;
+	fill: #ccffdd;
+	cursor: pointer;
+}
+
+.green-rect-btn text {
+	stroke: none;
+	fill: #106010;
+	font-size: 2vw;
+	cursor: pointer;
+}
+
+.green-rect-btn:hover > rect {
+	fill: #aaffbb;
+}
+
+
+/* Brown rect series: for dialogs text and buttons */
+.brown-dialog {
+	stroke: #a00020;
+	stroke-width: 0.5vw;
+	fill: #ddccbb;
+}
+
+.brown-rect-text {
+	stroke: #a00020;
+	stroke-width: 0.4vw;
+	fill: #ddccbb;
+}
+
+.brown-rect-btn rect {
+	stroke: #a00020;
+	stroke-width: 0.4vw;
+	fill: #ddccbb;
+	cursor: pointer;
+}
+
+.brown-rect-btn text {
+	stroke: none;
+	fill: black;
+	font-size: 2vw;
+	cursor: pointer;
+}
+
+.brown-rect-btn:hover > rect {
+	fill: #ccaa88;
+}

@@ -21,8 +21,22 @@
 		}
 	},
 	"platform": {
-		"texture": "textures/grass.png",
-		"receiveShadow": true
+		"normal": {
+			"edgeRadius": 2,
+			"texture": {
+				"top": "textures/grass.png",
+				"others": "textures/dirt.png"
+			},
+			"receiveShadow": true
+		},
+		"destination": {
+			"edgeRadius": 2,
+			"texture": {
+				"top": "textures/dirt.png",
+				"others": "textures/dirt.png"
+			},
+			"receiveShadow": true			
+		}
 	},
 	"stage": [
 		[".",".",".",".","S",".",".",".",".",".",".","."],
