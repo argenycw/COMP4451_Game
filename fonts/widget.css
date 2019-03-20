@@ -1,6 +1,6 @@
 @font-face {
 	font-family: "Requires Moonshine";
-	src: url("/fonts/Requires Moonshine.otf");
+	src: url("./RequiresMoonshine.otf");
 }
 
 .cubic {
@@ -24,6 +24,15 @@
 	fill: white;
 }
 
+.menu-round-btn {
+	fill: #a00020;
+	cursor: pointer;
+}
+
+.menu-round-btn:hover {
+	fill: #ccaa88;
+}
+
 
 /* Green series: for winning dialog */
 .green-dialog {
@@ -35,7 +44,7 @@
 .green-rect-text {
 	stroke: #209030;
 	stroke-width: 0.4vw;
-	fill: #ccffdd;	
+	fill: #ccffdd;
 }
 
 .green-rect-btn rect {
@@ -62,6 +71,10 @@
 	stroke: #a00020;
 	stroke-width: 0.5vw;
 	fill: #ddccbb;
+}
+
+.menu-brown-dialog {
+	fill: transparent;
 }
 
 .brown-rect-text {

@@ -9,7 +9,7 @@
 // - stage.js
 // - music.js
 // - Widget.js
-// 
+//
 // # Constants
 const c_musicBarCoordinate = ["0", "0", "100%", "100%"];
 const c_musicBarDefaultBgColor = "#282828";
@@ -85,7 +85,7 @@ function setHitArea(theme) {
 	hitArea.setAttribute("y", 0);
 	hitArea.setAttribute("width", width);
 	hitArea.setAttribute("height", "100%");
-	hitArea.setAttribute("fill-opacity", "0");	
+	hitArea.setAttribute("fill-opacity", "0");
 	svg.append(hitArea);
 }
 
@@ -139,6 +139,7 @@ function setFlashArea(theme) {
 }
 
 function initMusicBar(theme) {
+	notesList = [];
 	svg = document.createElementNS(svgns, "svg");
 	defs = document.createElementNS(svgns, 'defs');
 	svg.appendChild(defs);

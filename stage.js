@@ -26,7 +26,7 @@ const c_fallSpeed = 100;
 // (c_jumpInitVelocity / c_fallSpeed) * 2 => time needed to jump across ONE platform
 
 const directionX = Object.freeze({"LEFT":1, "RIGHT":-1, "NULL":0});
-const directionZ = Object.freeze({"UP":1, "DOWN":-1, "NULL":0}); 
+const directionZ = Object.freeze({"UP":1, "DOWN":-1, "NULL":0});
 const platformTypes = Object.freeze({"NORMAL":0, "DESTINATION":1});
 // ===============================================
 // # Global objects and variables
@@ -34,10 +34,7 @@ var paused = false;					// Should the animation stuff be paused
 var nextRemaining = 0;
 var animationInterval = null;
 
-var scene = null;
-var camera = null;
 var audioListener = null;
-var renderer = null;
 
 var player = null;
 var playerX = 0, playerZ = 0;		// save the x and z position in currentMap
@@ -47,7 +44,7 @@ var losingY = -100;					// The minimum y the player can reach not to lose
 
 // ==================================================================
 function animate() {
-	// requestAnimationFrame(animate);	
+	// requestAnimationFrame(animate);
 	if (player) {
 		playerFall();
 		camera.position.set(player.position.x, 20, player.position.z - 20);
@@ -68,16 +65,6 @@ function stageInit(sceneObject) {
 	camera.position.set(0, 20, -20);
 	camera.lookAt(new THREE.Vector3(0, 0, 20));
 
-	// Create and append a canvas object into DOM
-	var canvas = document.getElementById("canvas");
-	renderer = new THREE.WebGLRenderer({antialias: true});
-	renderer.setPixelRatio(window.devicePixelRatio);
-	renderer.setSize( window.innerWidth, window.innerHeight);
-	renderer.shadowMap.enabled = true;
-	renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-	renderer.domElement.setAttribute("id", "canvas");
-	document.body.appendChild(renderer.domElement);
-
 	// make the "fog"
 	var fogAttr = sceneObject.fog;
 	if (fogAttr) {
@@ -91,7 +78,7 @@ function stageInit(sceneObject) {
 
 	// Listener for window resize
 	window.addEventListener('resize', function() {
-	    renderer.setSize(window.innerWidth, window.innerHeight);		
+	    renderer.setSize(window.innerWidth, window.innerHeight);
 		camera.aspect = window.innerWidth / window.innerHeight;
 	    camera.updateProjectionMatrix();
 	}, false);
@@ -158,9 +145,9 @@ function setLight(lightObject) {
 	sunlight.shadow.camera.left = c_shadowSquareSize;
 	sunlight.shadow.camera.right = -c_shadowSquareSize;
 	sunlight.shadow.camera.top = c_shadowSquareSize;
-	sunlight.shadow.camera.bottom = -c_shadowSquareSize;		
+	sunlight.shadow.camera.bottom = -c_shadowSquareSize;
 	scene.add(ambientLight);
-	scene.add(sunlight);			
+	scene.add(sunlight);
 }
 
 // platforms: 2D array representing the map
@@ -176,7 +163,7 @@ function buildPlatforms(stage, platformAttr) {
 				platform.type = platformTypes.NORMAL;
 				platform.position.set(j * (c_PlatformSize[0] + c_PlatformSep), 0, i * (c_PlatformSize[2] + c_PlatformSep));
 				scene.add(platform);
-				mapRow.push(platform);							
+				mapRow.push(platform);
 				break;
 			case 'S':
 				var platform = renderPlatform(platformAttr.normal);
@@ -192,15 +179,15 @@ function buildPlatforms(stage, platformAttr) {
 				playerX = j;
 				playerZ = i;
 				// sunlight.target = player;
-				mapRow.push(platform);				
+				mapRow.push(platform);
 				break;
 			case 'F':
 				var platform = renderPlatform(platformAttr.destination);
 				platform.type = platformTypes.DESTINATION;
 				platform.position.set(j * (c_PlatformSize[0] + c_PlatformSep), 0, i * (c_PlatformSize[2] + c_PlatformSep));
 				scene.add(platform);
-				mapRow.push(platform);								
-				break;						
+				mapRow.push(platform);
+				break;
 			default:
 				mapRow.push(null);
 				break;
@@ -217,11 +204,12 @@ function stageOnSuccessLoad(content) {
  	// Render the sky
  	scene.background = renderSky(content.sky);
  	// light setting
- 	setLight(content.light);				 	
+ 	setLight(content.light);
  	// Render the platforms
  	buildPlatforms(content.stage, content.platform);
  	// Set the interval with a specific FPS
  	animationInterval = setInterval(function() {requestAnimationFrame(animate);}, 1000 / c_FPS);
+	paused = false;
 }
 
 // This function pauses/resumes everything that refreshes in the game
@@ -248,8 +236,30 @@ function gamePauseToggle() {
 		paused = false;
 		// change the svg icon as well
 		var pauser = widget.getWidget("pause-resume");
-		pauser.setAttribute("href", "#svg-pause");		
+		pauser.setAttribute("href", "#svg-pause");
 	}
+}
+
+// callback function for all backButton in stage
+var backCallBack = function () {
+	document.removeEventListener("keydown", onKeyDown);
+	scene = new THREE.Scene();
+	renderer.render(scene, camera);
+	var musicbar = svg; //svg in musicbar.js
+	musicbar.parentNode.removeChild(musicbar);
+	widget.removeAll();
+	mainMenu();
+}
+
+// callback function for restartBtn
+var restart = function() {
+	document.removeEventListener("keydown", onKeyDown);
+	scene = new THREE.Scene();
+	renderer.render(scene, camera);
+	var musicbar = svg; //svg in musicbar.js
+	musicbar.parentNode.removeChild(musicbar);
+	widget.removeAll();
+	start();
 }
 
 // When the player wins the currentStage
@@ -258,27 +268,30 @@ function stageClear() {
 	if (!paused) gamePauseToggle();
 	// Fade out background
 	widget.fadeScreenWhite(5000);
-	// display the dialog of winning	
+	// display the dialog of winning
+
 	var dialog = widget.showDialog("25%", "25%", "50%", "50%", ["green-dialog"], "clearing-dialog");
 	var clearMsg = widget.createSimpleText("Stage Clear", "50%", "30%", ["cubic", "green-rect-text"], "5vw");
 	var nextBtn = widget.createRectButton("Next Level", "30%", "45%", "40%", "20%", ["green-rect-btn", "cubic"]);
-	var backBtn = widget.createRectButton("Back to Menu", "30%", "70%", "40%", "20%", ["green-rect-btn", "cubic"]);
+	var backBtn = widget.createRectButton("Back to Menu", "30%", "70%", "40%", "20%", ["green-rect-btn", "cubic"], backCallBack);
 	dialog.appendChild(clearMsg);
 	dialog.appendChild(nextBtn);
 	dialog.appendChild(backBtn);
 }
+
+
 
 // When the player loses the currentStage for any reason
 function stageFail() {
 	// stop the game
 	if (!paused) gamePauseToggle();
 	// Fade out background
-	widget.fadeScreenWhite(5000);
+	widget.fadeScreenWhite(0.8, 5000);
 	// display the dialog of losing
 	var dialog = widget.showDialog("25%", "25%", "50%", "50%", ["brown-dialog"], "losing-dialog");
 	var gameoverMsg = widget.createSimpleText("Game Over", "50%", "30%", ["cubic", "brown-rect-text"], "5vw");
-	var restartBtn = widget.createRectButton("Restart", "30%", "45%", "40%", "20%", ["brown-rect-btn", "cubic"]);
-	var backBtn = widget.createRectButton("Back to Menu", "30%", "70%", "40%", "20%", ["brown-rect-btn", "cubic"]);
+	var restartBtn = widget.createRectButton("Restart", "30%", "45%", "40%", "20%", ["brown-rect-btn", "cubic"], restart);
+	var backBtn = widget.createRectButton("Back to Menu", "30%", "70%", "40%", "20%", ["brown-rect-btn", "cubic"], backCallBack);
 	dialog.appendChild(gameoverMsg);
 	dialog.appendChild(restartBtn);
 	dialog.appendChild(backBtn);
@@ -306,7 +319,7 @@ function onKeyDown(event) {
 	case 68: // D
 	case 39: // RIGHT Arrow
 		movePlayer(directionX.RIGHT, directionZ.NULL);
-		break;		
+		break;
 	}
 	return;
 }
@@ -325,7 +338,7 @@ function createPlayer(x_mid) {
 	player.velocityX = 0;
 	player.velocityY = 0;
 	player.velocityZ = 0;
-	return player;			
+	return player;
 }
 
 // To handle the jumping/falling motion of the player
@@ -333,7 +346,7 @@ function playerFall() {
 	if (player.velocityX == 0 && player.velocityY == 0 && player.velocityZ == 0) return;
 	// Y axis rising/falling
 	player.position.y += player.velocityY / c_FPS;
-	player.velocityY -= c_fallSpeed / c_FPS;	
+	player.velocityY -= c_fallSpeed / c_FPS;
 	// Case: Landing
 	let platform = getMapElement(playerZ, playerX);
 	if (player.velocityY < 0 && player.position.y - c_charDefaultPosY <= 0.001 && platform) {
@@ -377,7 +390,7 @@ function movePlayer(dirX=0, dirZ=0) {
 			nextMovement = [dirX, dirZ];
 		return;
 	};
-	player.velocityY = c_jumpInitVelocity;			
+	player.velocityY = c_jumpInitVelocity;
 	player.velocityX = (c_PlatformSize[0] + c_PlatformSep) * dirX * (c_fallSpeed / c_jumpInitVelocity / 2);
 	player.velocityZ = (c_PlatformSize[2] + c_PlatformSep) * dirZ * (c_fallSpeed / c_jumpInitVelocity / 2);
 	playerX += dirX;

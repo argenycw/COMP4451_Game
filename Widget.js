@@ -38,13 +38,13 @@ function Widget(x=0, y=0, width="100%", height="100%") {
 		rect.classList.add("unselectable");
 		for (var i = 0; i < classList.length; i++) {
 			rect.classList.add(classList[i]);
-		}		
+		}
 		dialog.appendChild(rect);
 		// append the text into the widget dictionary
 		myself.widgets[id] = dialog;
 		myself.screen.appendChild(dialog);
 		return dialog;
-	} 
+	}
 
 	// Return a rectangular button with a text embedded in the middle
 	this.createRectButton = function(textContent, x, y, width, height, classListBtn=[], onclick=function(){}) {
@@ -52,14 +52,14 @@ function Widget(x=0, y=0, width="100%", height="100%") {
 		group.setAttribute("x", x);
 		group.setAttribute("y", y);
 		group.setAttribute("width", width);
-		group.setAttribute("height", height);	
+		group.setAttribute("height", height);
 
 		// Create button
 		var btn = document.createElementNS(svgns, "rect");
 		btn.setAttribute("x", 0);
 		btn.setAttribute("y", 0);
 		btn.setAttribute("width", "100%");
-		btn.setAttribute("height", "100%");		
+		btn.setAttribute("height", "100%");
 		for (var i = 0; i < classListBtn.length; i++) {
 			group.classList.add(classListBtn[i]);
 		}
@@ -77,7 +77,7 @@ function Widget(x=0, y=0, width="100%", height="100%") {
 		group.appendChild(btn);
 		group.appendChild(text);
 		return group;
-	}	
+	}
 
 	// Return a rectangular button with a text embedded in the middle that is already on the screen
 	this.showRectButton = function(textContent, x, y, width, height, classListBtn=[], onclick=function(){},
@@ -88,7 +88,7 @@ function Widget(x=0, y=0, width="100%", height="100%") {
 		myself.widgets[id] = group;
 		myself.screen.appendChild(group);
 		return group;
-	}	
+	}
 
 	// Return an svg texts
 	this.createSimpleText = function(content, x, y, classList=[], size=0, id="w-"+Object.keys(myself.widgets).length) {
@@ -122,25 +122,33 @@ function Widget(x=0, y=0, width="100%", height="100%") {
 			setTimeout(function() {myself.remove(id);}, time * (i+1));
 		}
 		// return the time needed to wait for
-		return content.length * time; 
+		return content.length * time;
 	}
 
-	this.showDefinedSVG = function(x, y, classList=[], onclick=null, id="w-"+Object.keys(myself.widgets).length) {
-		var use = document.createElementNS(svgns, "use");
-		use.setAttribute("x", x);
-		use.setAttribute("y", y);
-		use.setAttribute("href", "#svg-pause");
-		if (onclick) use.addEventListener("click", onclick);
-		for (var i = 0; i < classList.length; i++) {
-			use.classList.add(classList[i]);
-		}
+	this.showDefinedSVG = function(x, y, href, classList=[], onclick=null, id="w-"+Object.keys(myself.widgets).length) {
+		var use = myself.createDefinedSVG(x, y, href, classList, onclick, id);
 		// append the svg into the widget dictionary
 		myself.widgets[id] = use;
 		myself.screen.appendChild(use);
 		return use;
 	}
 
-	this.fadeScreenWhite = function(fadeTime) {
+	this.createDefinedSVG = function(x, y, href, classList=[], onclick=null, id="w-"+Object.keys(myself.widgets).length) {
+		var use = document.createElementNS(svgns, "use");
+		use.setAttribute("x", x);
+		use.setAttribute("y", y);
+		use.setAttribute("href", href);
+		if (onclick) use.addEventListener("click", onclick);
+		for (var i = 0; i < classList.length; i++) {
+			use.classList.add(classList[i]);
+		}
+		// append the svg into the widget dictionary
+		return use;
+	}
+
+
+
+	this.fadeScreenWhite = function(fadeLevel, fadeTime) {
 		var fade = document.createElementNS(svgns, "rect");
 		fade.setAttribute("x", 0);
 		fade.setAttribute("y", 0);
@@ -152,11 +160,12 @@ function Widget(x=0, y=0, width="100%", height="100%") {
 			var opacity = parseFloat(fade.style.fillOpacity);
 			opacity += 0.05;
 			fade.style.fillOpacity = opacity;
-			if (opacity < 0.8) 
+			if (opacity < fadeLevel)
 				setTimeout(fade.fadeWhite, fadeTime / c_FPS);
 		};
 		setTimeout(fade.fadeWhite, fadeTime / c_FPS);
 		myself.screen.appendChild(fade);
+		myself.widgets["fade"] = fade;
 	}
 
 
@@ -185,10 +194,16 @@ function Widget(x=0, y=0, width="100%", height="100%") {
 		}
 	}
 
+	this.removeAll = function() {
+		for (var key in myself.widgets)
+			myself.widgets[key].parentNode.removeChild(myself.widgets[key]);
+			delete myself.widgets[key];
+	}
+
 	// Some SVG definition
 	this.playSVG = document.createElementNS(svgns, "g");
 	this.playSVG.setAttribute("id", "svg-play");
-	this.playSVG.innerHTML = 
+	this.playSVG.innerHTML =
 	`
 	<circle cx="256" cy="256" r="256" fill-opacity="0" stroke="none"/>
 	  <g>
@@ -234,4 +249,45 @@ function Widget(x=0, y=0, width="100%", height="100%") {
 	</g>`;
 	this.pauseSVG.setAttribute("transform", "scale(0.05, 0.05)");
 	this.defs.appendChild(this.pauseSVG);
+
+	this.settingSVG = document.createElementNS(svgns, "g");
+	this.settingSVG.setAttribute("id", "svg-setting");
+	this.settingSVG.innerHTML =
+	`
+	<circle cx="256" cy="256" r="256" fill-opacity="0" stroke="none"/>
+	<g>
+		<g>
+			<path d="M256.8,160c-25.7,0-49.8,10-67.9,28.1c-18.1,18.1-28.1,42.2-28.1,67.9s10,49.7,28.1,67.9C207,342,231.2,352,256.8,352
+				c25.7,0,49.8-10,67.9-28.1c18.1-18.1,28.1-42.2,28.1-67.9s-10-49.7-28.1-67.9C306.6,170,282.5,160,256.8,160z M256.8,336
+				c-44.3,0-80-35.9-80-80c0-44.1,35.7-80,80-80c44.3,0,80,35.9,80,80C336.8,300.1,301.1,336,256.8,336z"/>
+		</g>
+	</g>
+	<g>
+		<g>
+			<path d="M424.5,216h-15.2c-12.4,0-22.8-10.4-22.8-23.2c0-6.4,2.7-12.1,7.5-16.4l9.8-9.6c9.7-9.6,9.7-25.2,0-34.9l-22.3-22.1
+			c-4.4-4.4-10.9-7-17.5-7c-6.6,0-13,2.6-17.5,7l-9.4,9.4c-4.5,5-10.7,7.7-17.2,7.7c-12.8,0-23.7-10.4-23.7-22.7V89.1
+			c0-13.5-10.5-25.1-24-25.1h-30.4C228,64,217,75.5,217,89.1v15.2c0,12.3-10.6,22.7-23.4,22.7c-6.4,0-12.2-2.7-16.6-7.4l-9.7-9.6
+			c-4.4-4.5-10.9-7-17.5-7s-13,2.6-17.5,7L110,132c-9.6,9.6-9.6,25.3,0,34.8l9.4,9.4c5,4.5,7.8,10.2,7.8,16.7
+			c0,12.8-10.4,23.2-22.8,23.2H89.2C75.5,216,64,227.2,64,240.8V256v15.2c0,13.5,11.5,24.8,25.2,24.8h15.2
+			c12.4,0,22.8,10.4,22.8,23.2c0,6.4-2.8,12.3-7.8,16.8l-9.4,9.2c-9.6,9.6-9.6,25.2,0,34.8l22.3,22.2c4.4,4.5,10.9,7,17.5,7
+			c6.6,0,13-2.6,17.5-7l9.7-9.6c4.2-4.7,10.1-7.4,16.5-7.4c12.8,0,23.4,10.4,23.4,22.7v15.2c0,13.5,11,25.1,24.7,25.1h30.4
+			c13.6,0,24.9-11.5,24.9-25.1v-15.2c0-12.3,10.5-22.7,23.3-22.7c6.4,0,12.3,2.8,16.9,7.7l9.4,9.4c4.5,4.4,10.9,7,17.5,7
+			c6.6,0,13-2.6,17.5-7l22.3-22.2c9.6-9.6,9.6-25.3,0-34.9l-9.8-9.6c-4.8-4.3-7.5-10.4-7.5-16.7c0-12.8,10.4-23.6,22.8-23.6h15.2
+			c13.6,0,23.3-10.3,23.3-23.9V256v-15.2C447.8,227.2,438.1,216,424.5,216z M432,256v15.1c0,4.2-2.3,7.9-7.3,7.9h-15.2
+			c-10.3,0-20.1,4.4-27.5,12c-7.3,7.5-11.3,17.4-11.3,27.8c0,10.8,4.4,20.8,12.5,28.2l9.5,9.4c3.3,3.4,3.3,9,0,12.3l-22.3,22.2
+			c-1.6,1.5-3.9,2.4-6.3,2.4c-2.4,0-4.8-0.9-6.3-2.4l-9.1-9.1c-7.7-8.1-17.8-12.6-28.5-12.6c-10.4,0-20,4-27.5,11.2
+			c-7.6,7.4-11.6,17.1-11.6,27.5v15.2c0,4.9-4.3,9.1-8.9,9.1h-30.4c-4.6,0-8.7-4.2-8.7-9.1v-15.2c0-10.3-4.1-20.1-11.7-27.5
+			c-7.5-7.2-17.3-11.2-27.6-11.2c-10.6,0-20.8,4.5-28.1,12.4l-9.3,9.3c-1.6,1.5-3.9,2.4-6.3,2.4c-2.4,0-4.8-0.8-6.1-2.2l-0.1-0.1
+			l-0.1-0.1l-22.3-22.2c-3.3-3.3-3.3-8.8,0-12.2l9.1-9c8.2-7.6,12.7-17.7,12.7-28.5c0-10.4-4-19.9-11.3-27.4
+			c-7.4-7.6-17.2-11.5-27.5-11.5H89.2c-5,0-9.2-4.3-9.2-8.8V256v-15.2c0-4.5,4.2-8.8,9.2-8.8h15.2c10.3,0,20.1-3.9,27.5-11.5
+			c7.3-7.5,11.3-17.2,11.3-27.5c0-10.8-4.5-20.9-12.7-28.4l-9.2-9.1c-2.2-2.2-2.5-4.7-2.5-6.1c0-1.3,0.3-3.9,2.5-6.1l22.2-22.1
+			c1.6-1.5,3.9-2.4,6.3-2.4c2.4,0,4.8,0.8,6.1,2.2l0.1,0.1l0.1,0.1l9.4,9.4c7.4,8,17.4,12.4,28.1,12.4c10.4,0,20.1-4,27.6-11.2
+			c7.6-7.4,11.8-17.1,11.8-27.5V89.1c0-4.9,4-9.1,8.5-9.1H272c4.5,0,8,4.2,8,9.1v15.2c0,10.3,4.4,20.1,12,27.5
+			c7.5,7.2,17.4,11.2,27.8,11.2c10.8,0,21-4.5,28.6-12.6l9.1-9.1c1.6-1.5,3.9-2.4,6.3-2.4c2.4,0,4.8,0.9,6.3,2.3l22.3,22.1
+			c1.6,1.6,2.6,3.8,2.6,6.1c0,2.3-0.9,4.5-2.5,6.1l-9.5,9.4c-8,7.4-12.5,17.4-12.5,28.2c0,10.4,4,19.9,11.3,27.4
+			c7.4,7.6,17.2,11.5,27.5,11.5h15.2c5.4,0,7.4,5,7.5,9V256z"/>
+		</g>
+	</g>`;
+	this.settingSVG.setAttribute("transform", "scale(0.07, 0.07)");
+	this.defs.appendChild(this.settingSVG);
 }
