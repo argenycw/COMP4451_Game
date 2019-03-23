@@ -30,6 +30,8 @@ var currentCol = 0;				// Current column reading in notesContent
 
 function notesOnSuccessLoad(content) {
 	readNotes(content);
+	currentRow = 0;
+	currentCol = 0;
 }
 
 // To load the song, and save the notes required to hit globally

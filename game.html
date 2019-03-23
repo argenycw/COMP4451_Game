@@ -27,7 +27,7 @@
 	<script src="menu.js"></script>
 	<script src="stage.js"></script>
 	<script src="musicbar.js"></script>
-	<script src="music.js"></script>	
+	<script src="music.js"></script>
 </head>
 <body>
 	<script>
@@ -35,8 +35,15 @@
 		const stageBeginMsg = ["3", "2", "1", "Stage Begin"];
 		var resourceLoader = null;
 		var widget = new Widget();
+		initCanvas();
 		mainMenu();
-		
+		// Listener for window resize
+		window.addEventListener('resize', function() {
+				renderer.setSize(window.innerWidth, window.innerHeight);
+			camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+		}, false);
+
 		function start() {
 			// Load resources using ResourceLoader
 			resourceLoader = new ResourceLoader("map00.json", "theme0.json", "stage00.json", mapFolder, themeFolder, noteFolder);
@@ -51,13 +58,13 @@
 			if (resourceLoader.loadCompleted()) {
 				resourceLoader.runCallbacks();
 				// Pause/resume button
-				widget.showDefinedSVG("96%", "2%", ["black-round-btn"], gamePauseToggle, "pause-resume");
+				widget.showDefinedSVG("96%", "2%", "#svg-pause", ["black-round-btn"], gamePauseToggle, "pause-resume");
 
 				stageBegin();
 			}
 			else setTimeout(waitUntilLoaded, 200);
 		}
-		
-	</script>	
+
+	</script>
 </body>
 </html>
