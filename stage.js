@@ -15,7 +15,7 @@
 const mapFolder = 'maps/';
 const c_FPS = 45;
 const c_PlatformSize = [14, 4, 14];
-const c_PlatformSep = 1;
+const c_PlatformSep = 2;
 const c_PlatformDefRadius = 2		// the default edge corner radius of each platform
 const c_charRadius = 2.5;			// the half of the height of the player
 const c_charDefaultPosY = c_charRadius + 1;
@@ -30,6 +30,9 @@ const directionZ = Object.freeze({"UP":1, "DOWN":-1, "NULL":0});
 const platformTypes = Object.freeze({"NORMAL":0, "DESTINATION":1});
 // ===============================================
 // # Global objects and variables
+var mixers = []; 					// for animation for the character
+var clock = new THREE.Clock();
+
 var paused = false;					// Should the animation stuff be paused
 var nextRemaining = 0;
 var animationInterval = null;
@@ -109,16 +112,26 @@ function getMapElement(z, x) {
 
 // Create a single rectangular platform
 function renderPlatform(platformAttr) {
-	var source = platformAttr.texture;
-	var radius = platformAttr.edgeRadius ? platformAttr.edgeRadius : c_PlatformDefRadius;
-	var box = RoundEdgedBox(c_PlatformSize[0], c_PlatformSize[1], c_PlatformSize[2], radius);
-	// var box = new THREE.CubeGeometry(c_PlatformSize[0], c_PlatformSize[1], c_PlatformSize[2]);
-	var textureTop = new THREE.MeshLambertMaterial({map: new THREE.TextureLoader().load(source.top)});
-	var textureSide = new THREE.MeshLambertMaterial({map: new THREE.TextureLoader().load(source.others)});
-	var materials = [textureSide, textureSide, textureSide, textureSide, textureTop, textureSide];
-	var platform = new THREE.Mesh(box, materials);
-	platform.receiveShadow = platformAttr.receiveShadow;
-	return platform;
+	// Special scene: all platforms are in wireframe
+	if (platformAttr.wireframe) {
+		var geometry = new THREE.CubeGeometry(c_PlatformSize[0], c_PlatformSize[1], c_PlatformSize[2]);
+		var wireframe = new THREE.EdgesGeometry(geometry); // planes in squares but not triangles
+		var platform = new THREE.LineSegments(wireframe, new THREE.LineBasicMaterial({color: 0xffffff}));
+		return platform;
+	}
+	// normal scene with texture and rounded edge box
+	else {
+		var source = platformAttr.texture;
+		var radius = platformAttr.edgeRadius ? platformAttr.edgeRadius : c_PlatformDefRadius;
+		var box = RoundEdgedBox(c_PlatformSize[0], c_PlatformSize[1], c_PlatformSize[2], radius);
+		// var box = new THREE.CubeGeometry(c_PlatformSize[0], c_PlatformSize[1], c_PlatformSize[2]);
+		var textureTop = new THREE.MeshLambertMaterial({map: new THREE.TextureLoader().load(source.top)});
+		var textureSide = new THREE.MeshLambertMaterial({map: new THREE.TextureLoader().load(source.others)});
+		var materials = [textureSide, textureSide, textureSide, textureSide, textureTop, textureSide];
+		var platform = new THREE.Mesh(box, materials);
+		platform.receiveShadow = platformAttr.receiveShadow;
+		return platform;
+	}
 }
 
 function renderSky(skyObject) {
@@ -146,6 +159,7 @@ function renderSky(skyObject) {
 }
 
 function setLight(lightObject) {
+	if (!lightObject) return;
 	var sunPosition = lightObject.sunlight.position;
 	// Ambient Light: To avoid the objects to be completely darkened
 	// Sunlight: To render the shadows
@@ -171,14 +185,14 @@ function buildPlatforms(stage, platformAttr) {
  		if (!row) continue;
 		for (var j = 0; j < row.length; j++) {
 			switch (row[j]) {
-			case 'P':
+			case 'P': // Normal platform
 				var platform = renderPlatform(platformAttr.normal);
 				platform.type = platformTypes.NORMAL;
 				platform.position.set(j * (c_PlatformSize[0] + c_PlatformSep), 0, i * (c_PlatformSize[2] + c_PlatformSep));
 				scene.add(platform);
 				mapRow.push(platform);							
 				break;
-			case 'S':
+			case 'S': //
 				var platform = renderPlatform(platformAttr.normal);
 				platform.type = platformTypes.NORMAL;
 				var x_mid = j * (c_PlatformSize[0] + c_PlatformSep);
@@ -313,12 +327,24 @@ function onKeyDown(event) {
 
 function createPlayer(x_mid) {
 	// Placeholder: temporarily use a sphere to represent
+	/*
 	var sphere = new THREE.SphereBufferGeometry(c_charRadius, 32, 32);
 	var materialForChar = new THREE.MeshLambertMaterial();
 	materialForChar.color = new THREE.Color(0x2040A0);
 	let player = new THREE.Mesh(sphere, materialForChar);
+	*/
+	var player = resourceLoader.player.scene;
+	// embed animations into player
+	player.animations = resourceLoader.player.animations;
+	if (player.animations) {
+		player.mixer = new THREE.AnimationMixer(player);
+	    const action = player.mixer.clipAction(player.animations[0]);
+	    action.play();
+	}
+	else console.log("player has no animation...");
 
 	// setup and initialization
+	player.scale.set(0.05, 0.05, 0.05); // for horse
 	player.castShadow = true;
 	player.position.x = x_mid;
 	player.position.y += c_charDefaultPosY;
@@ -337,6 +363,8 @@ function playerFall() {
 	// Case: Landing
 	let platform = getMapElement(playerZ, playerX);
 	if (player.velocityY < 0 && player.position.y - c_charDefaultPosY <= 0.001 && platform) {
+		// Stop character animation, then activate
+		player.mixer.existingAction(player.animations[0]).stop().play();
 		// Cancel all speeds
 		player.velocityX = 0;
 		player.velocityY = 0;
@@ -358,11 +386,15 @@ function playerFall() {
 	}
 	// Case: Jumping / Falling
 	else {
+		// Play animation
+		player.mixer.existingAction(player.animations[0]).play();
+		const delta = clock.getDelta();
+		player.mixer.update(delta * c_fallSpeed / c_jumpInitVelocity);
 		// X and Z axis moving
 		player.position.x += player.velocityX / c_FPS;
 		player.position.z += player.velocityZ / c_FPS;
 		// Check if the player "loses" by falling out from the platforms
-		if (player.position.y < losingY) stageClear();
+		if (player.position.y < losingY) stageFail();
 	}
 }
 
@@ -382,6 +414,9 @@ function movePlayer(dirX=0, dirZ=0) {
 	player.velocityZ = (c_PlatformSize[2] + c_PlatformSep) * dirZ * (c_fallSpeed / c_jumpInitVelocity / 2);
 	playerX += dirX;
 	playerZ += dirZ;
+	// Rotate the player to face at where it is jumping
+	if (dirX) player.rotation.y = dirX * Math.PI / 2;
+	else if (dirZ) player.rotation.y = (dirZ == 1) ? 0 : Math.PI;
 	successJumpClearup();
 }
 
@@ -392,9 +427,7 @@ var getTimeout = (function() { // IIFE
 
     setTimeout = function(callback, delay) { // Modify setTimeout
         var id = _setTimeout(callback, delay); // Run the original, and store the id
-
         map[id] = [Date.now(), delay]; // Store the start date and delay
-
         return id; // Return the id
     };
 

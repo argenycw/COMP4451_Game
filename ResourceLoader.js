@@ -13,6 +13,7 @@ function ResourceLoader(mapFile, themeFile, stageFile, mapFolder="", themeFolder
 	this.theme = null;
 	this.stage = null;
 	this.song = null;
+	this.player = null;
 
 	this.mapCallback = null;
 	this.themeCallback = null;
@@ -124,10 +125,21 @@ function ResourceLoader(mapFile, themeFile, stageFile, mapFolder="", themeFolder
 		request.send();		
 	}
 
+	this.loadCharacter = function() {
+		var myself = this;
+		var loader = new THREE.GLTFLoader();
+		loader.load('models/stork.glb', function (gltf) {
+			myself.player = gltf;
+		}, undefined, function (error) {
+			console.error(error);
+		});
+	}
+
 	this.load = function() {
 		this.loadMap();
 		this.loadTheme();
 		this.loadStage();
+		this.loadCharacter();
 	}
 
 }

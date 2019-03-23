@@ -19,7 +19,9 @@
 		}
 	</style>
 	<script src="lib/three.js"></script>
+	<script src="lib/GLTFLoader.js"></script>
 	<script src="lib/RoundEdgedBox.js"></script>
+	<script src="lib/MeshLine.js"></script>
 	<script src="ResourceLoader.js"></script>
 	<script src="Widget.js"></script>
 	<script src="menu.js"></script>
@@ -29,7 +31,7 @@
 </head>
 <body>
 	<script>
-		const DEBUG = false;
+		const DEBUG = true;
 		const stageBeginMsg = ["3", "2", "1", "Stage Begin"];
 		var resourceLoader = null;
 		var widget = new Widget();
