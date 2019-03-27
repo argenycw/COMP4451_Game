@@ -27,7 +27,9 @@ const c_fallSpeed = 100;
 
 const directionX = Object.freeze({"LEFT":1, "RIGHT":-1, "NULL":0});
 const directionZ = Object.freeze({"UP":1, "DOWN":-1, "NULL":0});
-const platformTypes = Object.freeze({"NORMAL":0, "DESTINATION":1});
+const platformTypes = Object.freeze({"NORMAL":0, "DESTINATION":1, "HORIZONTAL":2, "VERTICAL":3, 
+									"XTRACK_L":-1, "XTRACK_R":-2, "ZTRACK_U":-3, "ZTRACK_D":-4});
+const playerStatus = Object.freeze({"NORMAL":0, "HORIZONTAL_PLATFORM":1, "VERTICAL_PLATFORM":2});
 // ===============================================
 // # Global objects and variables
 var mixers = []; 					// for animation for the character
@@ -39,15 +41,18 @@ var animationInterval = null;
 
 var audioListener = null;
 
+var stageLevel;
 var player = null;
 var playerX = 0, playerZ = 0;		// save the x and z position in currentMap
 var currentMap = [];
+var dynamicPlatformsList = [];
 var nextMovement = null;			// To make a smooth control, save the next movement to perform
 var losingY = -100;					// The minimum y the player can reach not to lose
 
 // ==================================================================
 function animate() {
 	// requestAnimationFrame(animate);
+	moveDynamicPlatforms();
 	if (player) {
 		playerFall();
 		camera.position.set(player.position.x, 20, player.position.z - 20);
@@ -55,6 +60,12 @@ function animate() {
 	}
 	moveNotes();
 	renderer.render(scene, camera);
+}
+
+function moveDynamicPlatforms() {
+	for (var i = 0; i < dynamicPlatformsList.length; i++) {
+		dynamicPlatformsList[i].move();
+	}
 }
 
 // ==================================================================
@@ -91,9 +102,15 @@ function stageInit(sceneObject) {
 	return;
 }
 
-function getMapElement(z, x) {
+function getMapElement(z, x, readSign=true) {
 	if (currentMap == null || currentMap.length == 0) return null;
 	if (z < 0 || x < 0 || z > currentMap.length-1 || x > currentMap[0].length-1) return null;
+	if (currentMap[z][x] == null) return null;
+	// if '>'/'<': find the actual platform recursively
+	if (readSign && currentMap[z][x].type == platformTypes.XTRACK_R) return getMapElement(z, x-1);
+	else if (readSign && currentMap[z][x].type == platformTypes.XTRACK_L) return getMapElement(z, x+1);
+	else if (readSign && currentMap[z][x].type == platformTypes.ZTRACK_U) return getMapElement(z-1, x);
+	else if (readSign && currentMap[z][x].type == platformTypes.ZTRACK_D) return getMapElement(z+1, x);
 	return currentMap[z][x];
 }
 
@@ -166,12 +183,14 @@ function setLight(lightObject) {
 
 // platforms: 2D array representing the map
 function buildPlatforms(stage, platformAttr) {
+	currentMap = [];
+	dynamicPlatformsList = [];
 	for (var i = 0; i < stage.length; i++) {
  		var row = stage[i];
  		var mapRow = [];
  		if (!row) continue;
 		for (var j = 0; j < row.length; j++) {
-			switch (row[j]) {
+			switch (row[j][0]) {
 			case 'P': // Normal platform
 				var platform = renderPlatform(platformAttr.normal);
 				platform.type = platformTypes.NORMAL;
@@ -179,7 +198,7 @@ function buildPlatforms(stage, platformAttr) {
 				scene.add(platform);
 				mapRow.push(platform);
 				break;
-			case 'S': //
+			case 'S': // Starting platform
 				var platform = renderPlatform(platformAttr.normal);
 				platform.type = platformTypes.NORMAL;
 				var x_mid = j * (c_PlatformSize[0] + c_PlatformSep);
@@ -195,13 +214,125 @@ function buildPlatforms(stage, platformAttr) {
 				// sunlight.target = player;
 				mapRow.push(platform);
 				break;
-			case 'F':
-				var platform = renderPlatform(platformAttr.destination);
+			case 'F': // Destination
+			 	var platform;
+				if (platformAttr.destination) platform = renderPlatform(platformAttr.destination);
+				else platform = renderPlatform(platformAttr.normal);
 				platform.type = platformTypes.DESTINATION;
 				platform.position.set(j * (c_PlatformSize[0] + c_PlatformSep), 0, i * (c_PlatformSize[2] + c_PlatformSep));
 				scene.add(platform);
 				mapRow.push(platform);
 				break;
+			case 'H': // Horizontal moving platform
+			 	var platform;
+			 	var range = (row[j].length > 1) ? parseInt(row[j][1]) : 1;
+				if (platformAttr.horizontal) platform = renderPlatform(platformAttr.horizontal);
+				else platform = renderPlatform(platformAttr.normal);
+				platform.type = platformTypes.HORIZONTAL;
+				platform.position.set(j * (c_PlatformSize[0] + c_PlatformSep), 0, i * (c_PlatformSize[2] + c_PlatformSep));
+				platform.initX = platform.position.x;
+				platform.initMapX = j;
+				platform.velocityX = 10 / c_FPS;
+				// set up the moving property
+				platform.move = function() {
+					if (this.position.x < (this.initMapX - range) * (c_PlatformSize[0] + c_PlatformSep) ||
+						this.position.x > (this.initMapX + range) * (c_PlatformSize[0] + c_PlatformSep)) {
+						this.velocityX = -this.velocityX;
+					}
+					if (this.hasPlayer) {
+						// Move the player with the platform
+						player.position.x += this.velocityX;
+						// Move the MapView of the player (playerX playerZ) if necessary
+						let dx = 2 * (player.position.x - this.initX) / (c_PlatformSize[0] + c_PlatformSep);
+						let dmx = parseInt((dx + ((dx>0) ? 1 : -1)) / 2);
+						playerX = this.initMapX + dmx;
+					}
+					this.position.x += this.velocityX;
+				}
+				scene.add(platform);
+				dynamicPlatformsList.push(platform);
+				mapRow.push(platform);
+				break;
+			case 'Z': // Horizontal (Z) moving platform
+				var platform;
+			 	var range = (row[j].length > 1) ? parseInt(row[j][1]) : 1;
+				if (platformAttr.horizontal) platform = renderPlatform(platformAttr.horizontal);
+				else platform = renderPlatform(platformAttr.normal);
+				platform.type = platformTypes.HORIZONTAL;
+				platform.position.set(j * (c_PlatformSize[0] + c_PlatformSep), 0, i * (c_PlatformSize[2] + c_PlatformSep));
+				platform.initZ = platform.position.z;
+				platform.initMapZ = i;
+				platform.velocityZ = 10 / c_FPS;
+				// set up the moving property
+				platform.move = function() {
+					if (this.position.z < (this.initMapZ - range) * (c_PlatformSize[2] + c_PlatformSep) ||
+						this.position.z > (this.initMapZ + range) * (c_PlatformSize[2] + c_PlatformSep)) {
+						this.velocityZ = -this.velocityZ;
+					}
+					if (this.hasPlayer) {
+						// Move the player with the platform
+						player.position.z += this.velocityZ;
+						// Move the MapView of the player (playerX playerZ) if necessary
+						let dz = 2 * (player.position.z - this.initZ) / (c_PlatformSize[2] + c_PlatformSep);
+						let dmz = parseInt((dz + ((dz>0) ? 1 : -1)) / 2);
+						playerZ = this.initMapZ + dmz;
+					}
+					this.position.z += this.velocityZ;
+				}
+				scene.add(platform);
+				dynamicPlatformsList.push(platform);
+				mapRow.push(platform);
+				break;
+			case 'V': // vertical moving platforms
+				var platform;
+			 	var range = (row[j].length > 1) ? parseInt(row[j][1]) : 1;
+				if (platformAttr.vertical) platform = renderPlatform(platformAttr.vertical);
+				else platform = renderPlatform(platformAttr.normal);
+				platform.type = platformTypes.VERTICAL;
+				platform.position.set(j * (c_PlatformSize[0] + c_PlatformSep), 0, i * (c_PlatformSize[2] + c_PlatformSep));
+				platform.initY = platform.position.y;
+				platform.velocityY = barPeriod / 1000 / c_FPS;
+				// set up the moving property
+				platform.move = function() {
+					if (this.position.y < this.initY || (this.position.y > this.initY + range * c_PlatformSize[1] * 2)) {
+						this.velocityY = -this.velocityY;
+					}
+					if (this.hasPlayer) {
+						// Move the player with the platform
+						player.position.y += this.velocityY;
+					}
+					this.position.y += this.velocityY;
+				}
+				scene.add(platform);
+				dynamicPlatformsList.push(platform);
+				mapRow.push(platform);
+				break;
+			case '>': // XTRACK of moving platforms
+				var platform = {};
+				platform.isSign = true;
+				platform.type = platformTypes.XTRACK_L;
+				platform.position = new THREE.Vector3(j * (c_PlatformSize[0] + c_PlatformSep), 0, i * (c_PlatformSize[2] + c_PlatformSep));
+				mapRow.push(platform);
+				break;
+			case '<': // XTRACK of moving platforms
+				var platform = {};
+				platform.isSign = true;
+				platform.type = platformTypes.XTRACK_R;	
+				platform.position = new THREE.Vector3(j * (c_PlatformSize[0] + c_PlatformSep), 0, i * (c_PlatformSize[2] + c_PlatformSep));
+				mapRow.push(platform);
+				break;
+			case 'v': // ZTRACK of moving platforms
+				var platform = {};
+				platform.isSign = true;
+				platform.type = platformTypes.ZTRACK_D;	
+				platform.position = new THREE.Vector3(j * (c_PlatformSize[0] + c_PlatformSep), 0, i * (c_PlatformSize[2] + c_PlatformSep));
+				mapRow.push(platform);
+			case '^': // ZTRACK of moving platforms
+				var platform = {};
+				platform.isSign = true;
+				platform.type = platformTypes.ZTRACK_U;	
+				platform.position = new THREE.Vector3(j * (c_PlatformSize[0] + c_PlatformSep), 0, i * (c_PlatformSize[2] + c_PlatformSep));
+				mapRow.push(platform);
 			default:
 				mapRow.push(null);
 				break;
@@ -235,7 +366,6 @@ function gamePauseToggle() {
 		resourceLoader.song.pause();
 		clearInterval(animationInterval);
 		nextRemaining = getTimeout(nextNoteTimeout);
-		console.log(nextRemaining);
 		clearTimeout(nextNoteTimeout);
 		// change the svg icon as well
 		var pauser = widget.getWidget("pause-resume");
@@ -270,10 +400,11 @@ var restart = function() {
 	document.removeEventListener("keydown", onKeyDown);
 	scene = new THREE.Scene();
 	renderer.render(scene, camera);
-	var musicbar = svg; //svg in musicbar.js
+	var musicbar = svg; // svg in musicbar.js
 	musicbar.parentNode.removeChild(musicbar);
 	widget.removeAll();
-	start();
+	// dynamicPlatformsList <- ?
+	start(stageLevel);
 }
 
 // When the player wins the currentStage
@@ -316,7 +447,7 @@ function stageFail() {
 // ==================================================================
 function onKeyDown(event) {
 	if (paused) return;
-	var keyCode = event.which;
+	let keyCode = event.which;
 	switch (keyCode) {
 	case 87: // W
 	case 38: // UP Arrow
@@ -364,6 +495,7 @@ function createPlayer(x_mid) {
 	player.velocityX = 0;
 	player.velocityY = 0;
 	player.velocityZ = 0;
+	player.status = playerStatus.NORMAL;
 	return player;
 }
 
@@ -375,17 +507,28 @@ function playerFall() {
 	player.velocityY -= c_fallSpeed / c_FPS;
 	// Case: Landing
 	let platform = getMapElement(playerZ, playerX);
-	if (player.velocityY < 0 && player.position.y - c_charDefaultPosY <= 0.001 && platform) {
+	if (landingAndCollidePlatform(platform)) {
 		// Stop character animation, then activate
 		player.mixer.existingAction(player.animations[0]).stop().play();
 		// Cancel all speeds
 		player.velocityX = 0;
 		player.velocityY = 0;
 		player.velocityZ = 0;
-		// Fix the landing position to the center of the platform
-		player.position.y = c_charDefaultPosY;
-		player.position.x = platform.position.x;
-		player.position.z = platform.position.z;
+		if (platform.type == platformTypes.HORIZONTAL) {
+			player.status = playerStatus.HORIZONTAL_PLATFORM;
+			platform.hasPlayer = true;
+		}
+		else if (platform.type == platformTypes.VERTICAL) {
+			player.status = playerStatus.VERTICAL_PLATFORM;
+			platform.hasPlayer = true;			
+		}
+		else {
+			// Fix the landing position to the center of the platform
+			/*player.position.y = c_charDefaultPosY;
+			player.position.x = platform.position.x;
+			player.position.z = platform.position.z;*/
+			player.status = playerStatus.NORMAL;
+		}
 		// Check if the player is landing on the destination (Winning)
 		if (platform.type == platformTypes.DESTINATION) {
 			stageClear();
@@ -411,6 +554,26 @@ function playerFall() {
 	}
 }
 
+function landingAndCollidePlatform(platform) {
+	if (platform == null) return false;
+	if (platform.type == platformTypes.VERTICAL) {
+		let yPos = platform.position.y + c_PlatformSize[1] / 4;
+		return player.velocityY < 0 && yPos - player.position.y <= 0.001 && intersectPlatform(platform);
+	}
+	else
+		// player has no y velocity, and is at a good position && intersect with the platform rect
+		return player.velocityY < 0 && player.position.y - c_charDefaultPosY <= 0.001 && intersectPlatform(platform);
+	return false;
+}
+
+// Whether the player has a x z intersect with the platform
+function intersectPlatform(platform) {
+	var r = ((platform.position.x - c_PlatformSize[0] / 2 <= player.position.x) && 
+			(platform.position.x + c_PlatformSize[0] / 2 >= player.position.x) && 
+			(platform.position.z - c_PlatformSize[2] / 2 <= player.position.z) &&
+			(platform.position.z + c_PlatformSize[2] / 2 >= player.position.z));
+	return r;
+}
 
 function movePlayer(dirX=0, dirZ=0) {
 	if (!player) return;
@@ -421,15 +584,28 @@ function movePlayer(dirX=0, dirZ=0) {
 		if (player.velocityY < 0 && player.position.y < c_charDefaultPosY * 2)
 			nextMovement = [dirX, dirZ];
 		return;
-	};
+	}
+	// Mark the player has left the platform (to avoid horizontal movement)
+	let currentPlatform = getMapElement(playerZ, playerX);
+	if (currentPlatform) currentPlatform.hasPlayer = false;
 	player.velocityY = c_jumpInitVelocity;
-	player.velocityX = (c_PlatformSize[0] + c_PlatformSep) * dirX * (c_fallSpeed / c_jumpInitVelocity / 2);
-	player.velocityZ = (c_PlatformSize[2] + c_PlatformSep) * dirZ * (c_fallSpeed / c_jumpInitVelocity / 2);
+
+	let dpx = (c_PlatformSize[0] + c_PlatformSep);
+	let dpz = (c_PlatformSize[2] + c_PlatformSep);
+	// try to "fix" the position by jumping towards the center of the platform
+	let nextPlatform = getMapElement(playerZ + dirZ, playerX + dirX, false);
+	if (nextPlatform && !nextPlatform.isSign) {
+		dpx = Math.abs(player.position.x - nextPlatform.position.x);
+		dpz = Math.abs(player.position.z - nextPlatform.position.z);
+	}
+	player.velocityX = dpx * dirX * (c_fallSpeed / (c_jumpInitVelocity * 2));
+	player.velocityZ = dpz * dirZ * (c_fallSpeed / (c_jumpInitVelocity * 2));
 	playerX += dirX;
 	playerZ += dirZ;
 	// Rotate the player to face at where it is jumping
 	if (dirX) player.rotation.y = dirX * Math.PI / 2;
 	else if (dirZ) player.rotation.y = (dirZ == 1) ? 0 : Math.PI;
+	console.log(playerX, playerZ);
 	successJumpClearup();
 }
 

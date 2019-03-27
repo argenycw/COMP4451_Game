@@ -6,7 +6,7 @@
 
 
 // Constructor
-function ResourceLoader(mapFile, themeFile, stageFile, mapFolder="", themeFolder="", stageFolder="") {
+function ResourceLoader(mapFile="", themeFile="", stageFile="", mapFolder="", themeFolder="", stageFolder="") {
 	// Initialization
 	var loader = this;
 	this.map = null;

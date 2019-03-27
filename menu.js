@@ -12,7 +12,8 @@
 const c_maxStages = 20;
 const gridPerRow = 6;
 // # Global objects and variables
-var currentStage = 1;
+var m_resourceLoader = null;
+var currentStage = 2;
 var angle = 1;
 var center = 0;
 var scene = null;
@@ -51,7 +52,7 @@ function menuOnSuccessLoad(content) {
  	// light setting
  	setLight(content.light);
  	// Render the platforms
-	center = 14 * resourceLoader.map.stage.length / 2;
+	center = 14 * m_resourceLoader.map.stage.length / 2;
  	buildPlatforms(content.stage, content.platform);
  	// Set the interval with a specific FPS
  	animationInterval = setInterval(function() {requestAnimationFrame(menuAnimate);}, 1000 / (c_FPS/3));
@@ -89,13 +90,13 @@ function showMainDialog() {
 }
 
 function mainMenu() {
-
 	widget.fadeScreenWhite(0.3, 0);
-	resourceLoader = new ResourceLoader("map00.json", "theme0.json", "stage00.json", mapFolder, themeFolder, noteFolder);
-	resourceLoader.mapCallback = menuOnSuccessLoad;
-	resourceLoader.load();
+	m_resourceLoader = new ResourceLoader("menu.json", null, null, mapFolder);
+	m_resourceLoader.mapCallback = menuOnSuccessLoad;
+	m_resourceLoader.loadMap();
+	// Display the loading page and wait until loader finishes
+	widget.showLoadingScreen();
 	menuWaitUntilLoaded();
-	showMainDialog();
 }
 
 
@@ -111,17 +112,18 @@ function stageSelection() {
 		var row = parseInt(i / gridPerRow);
 		var col = i % gridPerRow;
 		var xSep = parseInt(80 / gridPerRow - 10);
-		var playStageI = function() {
-		widget.remove(dialog);
+		var playStageI = function(stage) {
+			widget.remove(dialog);
 			widget.remove("fade");
 			//TODO: loading scene
 			clearInterval(animationInterval);
 	 		scene = new THREE.Scene();
 			renderer.render(scene, camera);
-			start();
+			start(stage);
 		}
+		// Create the rectangle button to enter the stage
 		var grid = widget.createRectButton((i+1).toString(), (10+xSep+col*(10+xSep))+"%", (30+row*(10+xSep))+"%",
-							"10%", "10%", ["brown-rect-btn", "cubic"], playStageI);
+							"10%", "10%", ["brown-rect-btn", "cubic"], playStageI, i);
 		dialog.appendChild(grid);
 	}
 	dialog.appendChild(backBtn);
@@ -166,8 +168,10 @@ function showSetting() {
 }
 
 function menuWaitUntilLoaded() {
-	if (resourceLoader.loadCompleted()) {
-		resourceLoader.this.mapCallback(resourceLoader.map);
+	if (m_resourceLoader.map) {
+		widget.clearLoadingScreen();
+		menuOnSuccessLoad(m_resourceLoader.map);
+		showMainDialog();
 	}
-	else setTimeout(waitUntilLoaded, 200);
+	else setTimeout(menuWaitUntilLoaded, 200);
 }

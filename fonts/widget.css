@@ -14,6 +14,11 @@
 	fill: white;
 }
 
+.black-full {
+	stroke: black;
+	fill: black;	
+}
+
 /* circle-buttons */
 .black-round-btn {
 	fill: black;

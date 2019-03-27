@@ -213,6 +213,7 @@ function removeNote(note) {
 }
 
 function jumpable() {
+	if (DEBUG) return true;
 	if (notesList.length == 0) return false;
 	var width = trimPercentage(hitArea.getAttribute("width"));
 	var x = parseFloat(notesList[0].getAttribute("posX"));
@@ -223,6 +224,7 @@ function jumpable() {
 
 function successJumpClearup() {
 	flashArea.flash();
+	if (DEBUG) return;
 	removeNote(notesList[0]);
 	notesList.shift();
 }

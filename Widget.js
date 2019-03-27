@@ -22,6 +22,7 @@ function Widget(x=0, y=0, width="100%", height="100%") {
 	this.screen.appendChild(this.defs);
 	document.body.appendChild(this.screen);
 	this.widgets = {}; // a dictionary indicating all objects inside the svg screen
+	this.loading = null;
 
 	this.showDialog = function(x, y, width, height, classList=[], id="w-"+Object.keys(myself.widgets).length) {
 		var dialog = document.createElementNS(svgns, "svg");
@@ -47,7 +48,7 @@ function Widget(x=0, y=0, width="100%", height="100%") {
 	}
 
 	// Return a rectangular button with a text embedded in the middle
-	this.createRectButton = function(textContent, x, y, width, height, classListBtn=[], onclick=function(){}) {
+	this.createRectButton = function(textContent, x, y, width, height, classListBtn=[], onclick=function(){}, arg=null) {
 		var group = document.createElementNS(svgns, "svg");
 		group.setAttribute("x", x);
 		group.setAttribute("y", y);
@@ -63,7 +64,9 @@ function Widget(x=0, y=0, width="100%", height="100%") {
 		for (var i = 0; i < classListBtn.length; i++) {
 			group.classList.add(classListBtn[i]);
 		}
-		group.addEventListener("click", onclick);
+		// The function depends on whether there is argument passed
+		if (arg === null) group.addEventListener("click", onclick);
+		else group.addEventListener("click", function() {onclick(arg)});
 		// Create text at the center of the button
 		var text = document.createElementNS(svgns, "text");
 		text.setAttribute("x", "50%");
@@ -146,7 +149,18 @@ function Widget(x=0, y=0, width="100%", height="100%") {
 		return use;
 	}
 
+	this.showLoadingScreen = function() {
+		var dialog = widget.showDialog("0%", "0%", "100%", "100%", ["black-full"], "loading-screen");
+		var loadingMsg = widget.createSimpleText("Loading...", "50%", "50%", ["cubic", "brown-rect-text"], "5vw");
+		dialog.appendChild(loadingMsg);
+		myself.loading = dialog;
+		return dialog;
+	}
 
+	this.clearLoadingScreen = function() {
+		myself.remove(myself.loading);
+		myself.loading = null;
+	}
 
 	this.fadeScreenWhite = function(fadeLevel, fadeTime) {
 		var fade = document.createElementNS(svgns, "rect");

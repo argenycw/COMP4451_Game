@@ -39,27 +39,33 @@
 		mainMenu();
 		// Listener for window resize
 		window.addEventListener('resize', function() {
-				renderer.setSize(window.innerWidth, window.innerHeight);
+			renderer.setSize(window.innerWidth, window.innerHeight);
 			camera.aspect = window.innerWidth / window.innerHeight;
-				camera.updateProjectionMatrix();
+			camera.updateProjectionMatrix();
 		}, false);
 
-		function start() {
+		function start(stage) {
 			// Load resources using ResourceLoader
-			resourceLoader = new ResourceLoader("map00.json", "theme0.json", "stage00.json", mapFolder, themeFolder, noteFolder);
+			let num = parseInt(stage);
+			let mapName = "map" + ((num < 10) ? '0' + num : num) + ".json";
+			let themeName = "theme0.json";
+			let stageName = "stage" + ((num < 10) ? '0' + num : num) + ".json";
+			stageLevel = num;
+			resourceLoader = new ResourceLoader(mapName, themeName, stageName, mapFolder, themeFolder, noteFolder);
 			resourceLoader.mapCallback = stageOnSuccessLoad;
 			resourceLoader.themeCallback = themeOnSuccessLoad;
 			resourceLoader.stageCallback = notesOnSuccessLoad;
 			resourceLoader.load();
+			widget.showLoadingScreen();
 			waitUntilLoaded();
 		}
 
 		function waitUntilLoaded() {
 			if (resourceLoader.loadCompleted()) {
 				resourceLoader.runCallbacks();
+				widget.clearLoadingScreen();
 				// Pause/resume button
 				widget.showDefinedSVG("96%", "2%", "#svg-pause", ["black-round-btn"], gamePauseToggle, "pause-resume");
-
 				stageBegin();
 			}
 			else setTimeout(waitUntilLoaded, 200);
