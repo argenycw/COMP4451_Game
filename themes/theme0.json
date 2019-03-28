@@ -7,7 +7,7 @@
 		"color": "#111"
 	},
 	"hitArea": {
-		"width": "6%"
+		"width": "8%"
 	},
 	"flashArea": {
 		"width": "20%",
@@ -15,7 +15,7 @@
 		"fade": 1000
 	},
 	"hitCenter": {
-		"x": "20%",
+		"x": "23%",
 		"radius": "3vh",
 		"color": "#ffffff"
 	},

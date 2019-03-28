@@ -31,7 +31,7 @@
 </head>
 <body>
 	<script>
-		const DEBUG = true;
+		const DEBUG = false;
 		const stageBeginMsg = ["3", "2", "1", "Stage Begin"];
 		var resourceLoader = null;
 		var widget = new Widget();
@@ -39,6 +39,7 @@
 		mainMenu();
 		// Listener for window resize
 		window.addEventListener('resize', function() {
+			resizeExistingNotes();
 			renderer.setSize(window.innerWidth, window.innerHeight);
 			camera.aspect = window.innerWidth / window.innerHeight;
 			camera.updateProjectionMatrix();
@@ -63,9 +64,9 @@
 		function waitUntilLoaded() {
 			if (resourceLoader.loadCompleted()) {
 				resourceLoader.runCallbacks();
-				widget.clearLoadingScreen();
 				// Pause/resume button
 				widget.showDefinedSVG("96%", "2%", "#svg-pause", ["black-round-btn"], gamePauseToggle, "pause-resume");
+				widget.clearLoadingScreen();
 				stageBegin();
 			}
 			else setTimeout(waitUntilLoaded, 200);

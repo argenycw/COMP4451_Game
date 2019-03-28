@@ -121,11 +121,11 @@ function Widget(x=0, y=0, width="100%", height="100%") {
 		for (var i = 0; i < content.length; i++) {
 			let textContent = content[i];
 			var id = "w_" + i;
-			setTimeout(function() {myself.showSimpleText(textContent, x, y, classList, size, id);}, time * i);
-			setTimeout(function() {myself.remove(id);}, time * (i+1));
+			setTimeout(function() {myself.showSimpleText(textContent, x, y, classList, size, id);}, time * (i+1));
+			setTimeout(function() {myself.remove(id);}, time * (i+2));
 		}
 		// return the time needed to wait for
-		return content.length * time;
+		return (content.length + 1) * time;
 	}
 
 	this.showDefinedSVG = function(x, y, href, classList=[], onclick=null, id="w-"+Object.keys(myself.widgets).length) {

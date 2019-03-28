@@ -18,11 +18,11 @@ const c_PlatformSize = [14, 4, 14];
 const c_PlatformSep = 2;
 const c_PlatformDefRadius = 2		// the default edge corner radius of each platform
 const c_charRadius = 2.5;			// the half of the height of the player
-const c_charDefaultPosY = c_charRadius + 1;
+const c_charDefaultPosY = c_charRadius;
 const c_shadowSquareSize = 300;		// the size of the square of the directional light casting on the map
 const c_shadowStrength = 4096;		// the strength of the directional light casting on the map
 const c_jumpInitVelocity = 20;
-const c_fallSpeed = 100;
+const c_fallSpeed = 180;
 // (c_jumpInitVelocity / c_fallSpeed) * 2 => time needed to jump across ONE platform
 
 const directionX = Object.freeze({"LEFT":1, "RIGHT":-1, "NULL":0});
@@ -58,6 +58,7 @@ function animate() {
 		camera.position.set(player.position.x, 20, player.position.z - 20);
 		camera.lookAt(player.position.x, 0, player.position.z);
 	}
+	checkNextNote();
 	moveNotes();
 	renderer.render(scene, camera);
 }
@@ -353,6 +354,7 @@ function stageOnSuccessLoad(content) {
  	// Render the platforms
  	buildPlatforms(content.stage, content.platform);
  	// Set the interval with a specific FPS
+ 	requestAnimationFrame(animate);
  	animationInterval = setInterval(function() {requestAnimationFrame(animate);}, 1000 / c_FPS);
 	paused = false;
 }
@@ -363,17 +365,16 @@ function gamePauseToggle() {
 	if (!paused) {
 		// Set the pause flag
 		paused = true;
-		resourceLoader.song.pause();
 		clearInterval(animationInterval);
 		nextRemaining = getTimeout(nextNoteTimeout);
-		clearTimeout(nextNoteTimeout);
+		clearTimeout(nextNoteTimeout);		
 		// change the svg icon as well
 		var pauser = widget.getWidget("pause-resume");
 		pauser.setAttribute("href", "#svg-play");
+		resourceLoader.song.pause();
 	}
 	// Resume
 	else {
-		resourceLoader.song.play();
 		animationInterval = setInterval(function() {requestAnimationFrame(animate);}, 1000 / c_FPS);
 		nextNoteTimeout = setTimeout(checkNextNote, nextRemaining);
 		// unset the pause flag
@@ -381,6 +382,7 @@ function gamePauseToggle() {
 		// change the svg icon as well
 		var pauser = widget.getWidget("pause-resume");
 		pauser.setAttribute("href", "#svg-pause");
+		resourceLoader.song.play();
 	}
 }
 
@@ -403,7 +405,6 @@ var restart = function() {
 	var musicbar = svg; // svg in musicbar.js
 	musicbar.parentNode.removeChild(musicbar);
 	widget.removeAll();
-	// dynamicPlatformsList <- ?
 	start(stageLevel);
 }
 
@@ -411,6 +412,7 @@ var restart = function() {
 function stageClear() {
 	// stop the game
 	if (!paused) gamePauseToggle();
+	stageEnd();
 	// Fade out background
 	widget.fadeScreenWhite(5000);
 	// display the dialog of winning
@@ -430,6 +432,7 @@ function stageClear() {
 function stageFail() {
 	// stop the game
 	if (!paused) gamePauseToggle();
+	stageEnd();
 	// Fade out background
 	widget.fadeScreenWhite(0.8, 5000);
 	// display the dialog of losing
@@ -470,25 +473,25 @@ function onKeyDown(event) {
 }
 
 function createPlayer(x_mid) {
-	// Placeholder: temporarily use a sphere to represent
-	/*
-	var sphere = new THREE.SphereBufferGeometry(c_charRadius, 32, 32);
-	var materialForChar = new THREE.MeshLambertMaterial();
-	materialForChar.color = new THREE.Color(0x2040A0);
-	let player = new THREE.Mesh(sphere, materialForChar);
-	*/
 	var player = resourceLoader.player.scene;
 	// embed animations into player
 	player.animations = resourceLoader.player.animations;
-	if (player.animations) {
-		player.mixer = new THREE.AnimationMixer(player);
+	player.mixer = new THREE.AnimationMixer(player);
+	if (player.animations.length > 0) { // Only add animation when it exists
 	    const action = player.mixer.clipAction(player.animations[0]);
 	    action.play();
 	}
-	else console.log("player has no animation...");
-
+	else console.warn("player has no animation...");
+	
 	// setup and initialization
-	player.scale.set(0.05, 0.05, 0.05); // for horse
+
+	// rescale the player to a proper size indicated by c_charRadius
+	let boundingBox = new THREE.Box3().setFromObject(player);
+	let v3 = new THREE.Vector3(1, 1, 1);
+	boundingBox.getSize(v3);
+	let ratio = 2 * 3 * c_charRadius / (v3.x + v3.y + v3.z);
+	player.scale.set(ratio, ratio, ratio); // for dog
+	// player.scale.set(0.05, 0.05, 0.05); // for stork
 	player.castShadow = true;
 	player.position.x = x_mid;
 	player.position.y += c_charDefaultPosY;
@@ -508,8 +511,8 @@ function playerFall() {
 	// Case: Landing
 	let platform = getMapElement(playerZ, playerX);
 	if (landingAndCollidePlatform(platform)) {
-		// Stop character animation, then activate
-		player.mixer.existingAction(player.animations[0]).stop().play();
+		// Stop character animation, then activate (if exist)
+		if (player.mixer.existingAction(player.animations[0])) player.mixer.existingAction(player.animations[0]).stop().play();
 		// Cancel all speeds
 		player.velocityX = 0;
 		player.velocityY = 0;
@@ -542,10 +545,12 @@ function playerFall() {
 	}
 	// Case: Jumping / Falling
 	else {
-		// Play animation
-		player.mixer.existingAction(player.animations[0]).play();
-		const delta = clock.getDelta();
-		player.mixer.update(delta * c_fallSpeed / c_jumpInitVelocity);
+		// Play animation (if any)
+		if (player.mixer.existingAction(player.animations[0])) {
+			player.mixer.existingAction(player.animations[0]).play();
+			const delta = clock.getDelta();
+			player.mixer.update(delta * c_fallSpeed / c_jumpInitVelocity);
+		}
 		// X and Z axis moving
 		player.position.x += player.velocityX / c_FPS;
 		player.position.z += player.velocityZ / c_FPS;
@@ -605,7 +610,6 @@ function movePlayer(dirX=0, dirZ=0) {
 	// Rotate the player to face at where it is jumping
 	if (dirX) player.rotation.y = dirX * Math.PI / 2;
 	else if (dirZ) player.rotation.y = (dirZ == 1) ? 0 : Math.PI;
-	console.log(playerX, playerZ);
 	successJumpClearup();
 }
 

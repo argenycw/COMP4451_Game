@@ -84,7 +84,7 @@ function ResourceLoader(mapFile="", themeFile="", stageFile="", mapFolder="", th
 		request.send();	
 	}
 
-	this.loadSong = function() {
+	this.loadSong = function() {		
 		try {
 			this.song = new Audio(stageFolder + this.stage.song);
 		}
@@ -128,7 +128,9 @@ function ResourceLoader(mapFile="", themeFile="", stageFile="", mapFolder="", th
 	this.loadCharacter = function() {
 		var myself = this;
 		var loader = new THREE.GLTFLoader();
-		loader.load('models/stork.glb', function (gltf) {
+		loader.load('models/dog.glb', function (gltf) {
+			// ensure every mesh of the model will cast shadow
+			gltf.scene.traverse(node => {if (node instanceof THREE.Mesh) {node.castShadow = true;}});
 			myself.player = gltf;
 		}, undefined, function (error) {
 			console.error(error);

@@ -135,7 +135,7 @@ function multiplayer() {
 	var title = widget.createSimpleText("Multiplayer", "50%", "20%", ["cubic", "brown-rect-text"], "5vw");
 	var backCallBack = function() {
 		widget.remove(dialog);
-		widget.remove("fade");
+		// widget.remove("fade");
 		showMainDialog();
 	}
 	var backBtn = widget.createRectButton("Back", "75%", "85%", "15%", "8%", ["cubic", "brown-rect-btn"], backCallBack);

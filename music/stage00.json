@@ -1,7 +1,7 @@
 {
 	"song": "drum_120bpm.mp3",
 	"timeTravel": 3,
-	"wait": 2500,
+	"wait": 0,
 	"period": 2000,
 	"content": [
 		[1, 0, 0, 0],
