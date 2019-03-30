@@ -13,7 +13,7 @@ const c_maxStages = 20;
 const gridPerRow = 6;
 // # Global objects and variables
 var m_resourceLoader = null;
-var currentStage = 2;
+var currentStage = 3;
 var angle = 1;
 var center = 0;
 var scene = null;
@@ -168,7 +168,7 @@ function showSetting() {
 }
 
 function menuWaitUntilLoaded() {
-	if (m_resourceLoader.map) {
+	if (m_resourceLoader.map && g_resourceLoader.allSoundEffectsLoaded()) {
 		widget.clearLoadingScreen();
 		menuOnSuccessLoad(m_resourceLoader.map);
 		showMainDialog();
