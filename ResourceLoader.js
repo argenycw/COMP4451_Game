@@ -14,6 +14,8 @@ function ResourceLoader(mapFile="", themeFile="", stageFile="", mapFolder="", th
 	this.stage = null;
 	this.song = null;
 	this.player = null;
+	this.soundsToLoad = 0;
+	this.soundEffects = [];
 
 	this.mapCallback = null;
 	this.themeCallback = null;
@@ -135,6 +137,26 @@ function ResourceLoader(mapFile="", themeFile="", stageFile="", mapFolder="", th
 		}, undefined, function (error) {
 			console.error(error);
 		});
+	}
+
+	this.loadSoundEffects = function(folder, list) {
+		let success = 0;
+		for (let i = 0; i < list.length; i++) {
+			try {
+				let sound = new Audio(folder + list[i]);
+				this.soundEffects.push(sound);
+				success++;
+			}
+			catch (e) {
+				console.log("Unable to load sound effect: " + list[i] + ":\n" + e);
+				return;
+			}
+		}
+		this.soundsToLoad = success;
+	}
+
+	this.allSoundEffectsLoaded = function() {
+		return (this.soundEffects.length == this.soundsToLoad);
 	}
 
 	this.load = function() {

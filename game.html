@@ -31,12 +31,16 @@
 </head>
 <body>
 	<script>
-		const DEBUG = false;
+		const DEBUG = true;
 		const stageBeginMsg = ["3", "2", "1", "Stage Begin"];
+		const soundList = ["jump01.wav", "jump02.wav", "land.wav"];
+		var g_resourceLoader = null;
 		var resourceLoader = null;
 		var widget = new Widget();
 		initCanvas();
 		mainMenu();
+		loadGlobalResources();
+
 		// Listener for window resize
 		window.addEventListener('resize', function() {
 			resizeExistingNotes();
@@ -70,6 +74,11 @@
 				stageBegin();
 			}
 			else setTimeout(waitUntilLoaded, 200);
+		}
+
+		function loadGlobalResources() {
+			g_resourceLoader = new ResourceLoader();
+			g_resourceLoader.loadSoundEffects("sounds/", soundList);
 		}
 
 	</script>

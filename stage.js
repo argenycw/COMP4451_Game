@@ -22,7 +22,7 @@ const c_charDefaultPosY = c_charRadius;
 const c_shadowSquareSize = 300;		// the size of the square of the directional light casting on the map
 const c_shadowStrength = 4096;		// the strength of the directional light casting on the map
 const c_jumpInitVelocity = 20;
-const c_fallSpeed = 180;
+const c_fallSpeed = 160;
 // (c_jumpInitVelocity / c_fallSpeed) * 2 => time needed to jump across ONE platform
 
 const directionX = Object.freeze({"LEFT":1, "RIGHT":-1, "NULL":0});
@@ -47,7 +47,7 @@ var playerX = 0, playerZ = 0;		// save the x and z position in currentMap
 var currentMap = [];
 var dynamicPlatformsList = [];
 var nextMovement = null;			// To make a smooth control, save the next movement to perform
-var losingY = -100;					// The minimum y the player can reach not to lose
+var losingY = -80;					// The minimum y the player can reach not to lose
 
 // ==================================================================
 function animate() {
@@ -511,6 +511,8 @@ function playerFall() {
 	// Case: Landing
 	let platform = getMapElement(playerZ, playerX);
 	if (landingAndCollidePlatform(platform)) {
+		// Play the sound effect of landing
+		playLandSound();
 		// Stop character animation, then activate (if exist)
 		if (player.mixer.existingAction(player.animations[0])) player.mixer.existingAction(player.animations[0]).stop().play();
 		// Cancel all speeds
@@ -610,7 +612,18 @@ function movePlayer(dirX=0, dirZ=0) {
 	// Rotate the player to face at where it is jumping
 	if (dirX) player.rotation.y = dirX * Math.PI / 2;
 	else if (dirZ) player.rotation.y = (dirZ == 1) ? 0 : Math.PI;
+	playJumpSound();
 	successJumpClearup();
+}
+
+function playJumpSound() {
+	let jumpSound = parseInt(Math.random() * 2);
+	g_resourceLoader.soundEffects[jumpSound].volume = 0.2;
+	g_resourceLoader.soundEffects[jumpSound].play();
+}
+
+function playLandSound() {
+	g_resourceLoader.soundEffects[2].play();
 }
 
 // A variable storing a getTimeout function
