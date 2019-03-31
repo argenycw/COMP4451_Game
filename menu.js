@@ -175,3 +175,8 @@ function menuWaitUntilLoaded() {
 	}
 	else setTimeout(menuWaitUntilLoaded, 200);
 }
+
+function playChoiceSound() {
+	g_resourceLoader.soundEffects[3].currentTime = 0;
+	g_resourceLoader.soundEffects[3].play();
+}

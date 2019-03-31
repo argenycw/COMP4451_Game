@@ -75,7 +75,8 @@ function Widget(x=0, y=0, width="100%", height="100%") {
 		text.style.textAnchor = "middle";
 		text.style.alignmentBaseline = "middle";
 		text.appendChild(document.createTextNode(textContent));
-
+		// "Click" sound of the button
+		group.addEventListener("mouseenter", playChoiceSound);
 		// Append the elements into the group
 		group.appendChild(btn);
 		group.appendChild(text);
@@ -151,7 +152,7 @@ function Widget(x=0, y=0, width="100%", height="100%") {
 
 	this.showLoadingScreen = function() {
 		var dialog = widget.showDialog("0%", "0%", "100%", "100%", ["black-full"], "loading-screen");
-		var loadingMsg = widget.createSimpleText("Loading...", "50%", "50%", ["cubic", "brown-rect-text"], "5vw");
+		var loadingMsg = widget.createSimpleText("Loading...", "50%", "50%", ["cubic", "white-fill"], "3vw");
 		dialog.appendChild(loadingMsg);
 		myself.loading = dialog;
 		return dialog;

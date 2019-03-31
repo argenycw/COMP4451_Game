@@ -1,7 +1,8 @@
 <html>
 <head>
 	<meta charset=utf-8>
-	<title>Three.js testing</title>
+	<title>COMP4451 Game</title>
+	<link rel="shortcut icon" href="favicon.png" type="image/x-icon" />
 	<link rel="stylesheet" type="text/css" href="fonts/widget.css">
 	<style>
 		body { margin: 0; overflow: hidden; }
@@ -20,6 +21,8 @@
 	</style>
 	<script src="lib/three.js"></script>
 	<script src="lib/GLTFLoader.js"></script>
+	<script src="lib/OBJLoader.js"></script>
+	<script src="lib/MTLLoader.js"></script>
 	<script src="lib/RoundEdgedBox.js"></script>
 	<script src="lib/MeshLine.js"></script>
 	<script src="ResourceLoader.js"></script>
@@ -33,7 +36,7 @@
 	<script>
 		const DEBUG = true;
 		const stageBeginMsg = ["3", "2", "1", "Stage Begin"];
-		const soundList = ["jump01.wav", "jump02.wav", "land.wav"];
+		const soundList = ["jump01.wav", "jump02.wav", "land.wav", "cursor.ogg", "collide.wav", "fall.wav"];
 		var g_resourceLoader = null;
 		var resourceLoader = null;
 		var widget = new Widget();

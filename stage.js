@@ -22,12 +22,12 @@ const c_charDefaultPosY = c_charRadius;
 const c_shadowSquareSize = 300;		// the size of the square of the directional light casting on the map
 const c_shadowStrength = 4096;		// the strength of the directional light casting on the map
 const c_jumpInitVelocity = 20;
-const c_fallSpeed = 160;
+const c_fallSpeed = 200;
 // (c_jumpInitVelocity / c_fallSpeed) * 2 => time needed to jump across ONE platform
 
 const directionX = Object.freeze({"LEFT":1, "RIGHT":-1, "NULL":0});
 const directionZ = Object.freeze({"UP":1, "DOWN":-1, "NULL":0});
-const platformTypes = Object.freeze({"NORMAL":0, "DESTINATION":1, "HORIZONTAL":2, "VERTICAL":3, 
+const platformTypes = Object.freeze({"NORMAL":0, "DESTINATION":1, "HORIZONTAL":2, "VERTICAL":3, "DECORATION":4,
 									"XTRACK_L":-1, "XTRACK_R":-2, "ZTRACK_U":-3, "ZTRACK_D":-4});
 const playerStatus = Object.freeze({"NORMAL":0, "HORIZONTAL_PLATFORM":1, "VERTICAL_PLATFORM":2});
 // ===============================================
@@ -47,7 +47,8 @@ var playerX = 0, playerZ = 0;		// save the x and z position in currentMap
 var currentMap = [];
 var dynamicPlatformsList = [];
 var nextMovement = null;			// To make a smooth control, save the next movement to perform
-var losingY = -80;					// The minimum y the player can reach not to lose
+var fallingY = -5;					// After fallingY, "fall.wav" will be played
+var losingY = -100;					// The minimum y the player can reach not to lose
 
 // ==================================================================
 function animate() {
@@ -130,13 +131,38 @@ function renderPlatform(platformAttr) {
 		var radius = platformAttr.edgeRadius ? platformAttr.edgeRadius : c_PlatformDefRadius;
 		var box = RoundEdgedBox(c_PlatformSize[0], c_PlatformSize[1], c_PlatformSize[2], radius);
 		// var box = new THREE.CubeGeometry(c_PlatformSize[0], c_PlatformSize[1], c_PlatformSize[2]);
-		var textureTop = new THREE.MeshLambertMaterial({map: new THREE.TextureLoader().load(source.top)});
-		var textureSide = new THREE.MeshLambertMaterial({map: new THREE.TextureLoader().load(source.others)});
+		var textureTop = new THREE.MeshLambertMaterial({map: resourceLoader.textures[source.top]});
+		var textureSide = new THREE.MeshLambertMaterial({map: resourceLoader.textures[source.others]});
 		var materials = [textureSide, textureSide, textureSide, textureSide, textureTop, textureSide];
 		var platform = new THREE.Mesh(box, materials);
 		platform.receiveShadow = platformAttr.receiveShadow;
 		return platform;
 	}
+}
+
+// Create a single rectangular platform, with a model on the center
+function renderDecoration(platformAttr, x, z) {
+	var platform = renderPlatform(platformAttr);
+	// Place the decoration object (if any) onto the platform
+	if (platformAttr.models) {
+		// setup of models loaded from resourceLoader	
+		let assets = resourceLoader.decorations[platformAttr.models];
+		let deco = assets.children[platformAttr.model].clone();
+		// translate
+		deco.position.x = x + platformAttr.position[0];
+		deco.position.y = platformAttr.position[1];				
+		deco.position.z = z + platformAttr.position[2];
+		deco.castShadow = platformAttr.castShadow;				
+		// rescale
+		if (platformAttr.size) {
+			let boundingBox = new THREE.Box3().setFromObject(deco);
+			let v3 = new THREE.Vector3(1, 1, 1);
+			boundingBox.getSize(v3);
+			deco.scale.set(platformAttr.size[0]/v3.x, platformAttr.size[1]/v3.y, platformAttr.size[2]/v3.z);
+		}
+		scene.add(deco);
+	}
+	return platform;
 }
 
 function renderSky(skyObject) {
@@ -224,6 +250,19 @@ function buildPlatforms(stage, platformAttr) {
 				scene.add(platform);
 				mapRow.push(platform);
 				break;
+			case 'D': // Decoration
+				var platform;
+				var type = (row[j].length > 1) ? parseInt(row[j][1]) : 1;
+				let x = j * (c_PlatformSize[0] + c_PlatformSep);
+				let z = i * (c_PlatformSize[2] + c_PlatformSep);				
+				if (platformAttr.decoration) {
+					platform = renderDecoration(platformAttr.decoration[type], x, z);
+					platform.position.set(x, 0, z);						
+					platform.type = platformTypes.DECORATION;
+					scene.add(platform);				
+				}
+				mapRow.push(platform);	
+				break;				
 			case 'H': // Horizontal moving platform
 			 	var platform;
 			 	var range = (row[j].length > 1) ? parseInt(row[j][1]) : 1;
@@ -511,6 +550,13 @@ function playerFall() {
 	// Case: Landing
 	let platform = getMapElement(playerZ, playerX);
 	if (landingAndCollidePlatform(platform)) {
+		// Check if the player land on a "decoration" platform
+		if (platform.type == platformTypes.DECORATION) {
+			// Boom and lose
+			playCollideSound();
+			stageFail();
+			return;
+		}
 		// Play the sound effect of landing
 		playLandSound();
 		// Stop character animation, then activate (if exist)
@@ -557,6 +603,7 @@ function playerFall() {
 		player.position.x += player.velocityX / c_FPS;
 		player.position.z += player.velocityZ / c_FPS;
 		// Check if the player "loses" by falling out from the platforms
+		if (player.position.y < fallingY) startFallSound();
 		if (player.position.y < losingY) stageFail();
 	}
 }
@@ -619,11 +666,24 @@ function movePlayer(dirX=0, dirZ=0) {
 function playJumpSound() {
 	let jumpSound = parseInt(Math.random() * 2);
 	g_resourceLoader.soundEffects[jumpSound].volume = 0.2;
+	g_resourceLoader.soundEffects[jumpSound].currentTime = 0;
 	g_resourceLoader.soundEffects[jumpSound].play();
 }
 
 function playLandSound() {
+	g_resourceLoader.soundEffects[2].currentTime = 0;
 	g_resourceLoader.soundEffects[2].play();
+}
+
+function playCollideSound() {
+	g_resourceLoader.soundEffects[4].currentTime = 0;
+	g_resourceLoader.soundEffects[4].play();	
+}
+
+function startFallSound() {
+	if (!g_resourceLoader.soundEffects[5].paused) return;
+	g_resourceLoader.soundEffects[5].currentTime = 0;
+	g_resourceLoader.soundEffects[5].play();
 }
 
 // A variable storing a getTimeout function
