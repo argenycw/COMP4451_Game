@@ -15,10 +15,11 @@
 		"fade": 1000
 	},
 	"explosion": {
-		"x": "23",
-		"radius": "3vh",
+		"top": "76%",
+		"radius": "30",
+		"scale": "14vh",
 		"color": "#9999ff",
-		"fade": 2000
+		"fade": 5000
 	},
 	"hitCenter": {
 		"x": "23%",
