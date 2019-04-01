@@ -27,7 +27,7 @@ function ResourceLoader(mapFile="", themeFile="", stageFile="", mapFolder="", th
 
 	this.loadCompleted = function() {
 		return (this.map && this.theme && this.stage && this.allTexturesLoaded() &&
-			Object.keys(this.decorations).length >= this.decorationsToLoad && this.song && this.song.readyState > 1);
+			this.allDecorationLoaded() && this.song && this.song.readyState > 1);
 	}
 
 	this.allCallbackFilled = function() {
@@ -185,6 +185,14 @@ function ResourceLoader(mapFile="", themeFile="", stageFile="", mapFolder="", th
 		return true;
 	}
 
+	this.allDecorationLoaded = function() {
+		let tex = this.decorations;
+		for (let key in tex) {
+			if (tex[key] === true) return false;
+		}
+		return true;		
+	}
+
 	this.loadDecorations = function() {
 		let decoList = this.map.platform.decoration;
 		if (!decoList) return;
@@ -193,37 +201,65 @@ function ResourceLoader(mapFile="", themeFile="", stageFile="", mapFolder="", th
 			// avoid loading the same thing twice
 			if (this.decorations[deco.models]) continue;
 			// load the material beforehand
-			var mtlLoader = new THREE.MTLLoader();
-			mtlLoader.load(deco.material,
-				function (material) {
-					// Load the OBJ file then
-					var objLoader = new THREE.OBJLoader();
-					objLoader.setMaterials(material);
-					objLoader.load(deco.models,
-						// called when resource is loaded
-						function (object) {
-							// To increase the saturation of the color, if specified
-							// it is placed here instead of stage->renderDecoration so as to avoid 
-							// duplicated color multiplication, because there is only ONE material (by reference)
-							if (deco.colorDepth) {
-								let obj = object.children[deco.model];
-								for (let j = 0; j < obj.material.length; j++) {
-									obj.material[j].color.r *= deco.colorDepth[0];
-									obj.material[j].color.g *= deco.colorDepth[1];
-									obj.material[j].color.b *= deco.colorDepth[2];
+			// for mtl and obj
+			if (deco.models.endsWith(".obj")) {
+				var mtlLoader = new THREE.MTLLoader();
+				mtlLoader.load(deco.material,
+					function (material) {
+						// Load the OBJ file then
+						var objLoader = new THREE.OBJLoader();
+						objLoader.setMaterials(material);
+						objLoader.load(deco.models,
+							// called when resource is loaded
+							function (object) {
+								// To increase the saturation of the color, if specified
+								// it is placed here instead of stage->renderDecoration so as to avoid 
+								// duplicated color multiplication, because there is only ONE material (by reference)
+								if (deco.colorDepth) {
+									let obj = object.children[deco.model];
+									for (let j = 0; j < obj.material.length; j++) {
+										obj.material[j].color.r *= deco.colorDepth[0];
+										obj.material[j].color.g *= deco.colorDepth[1];
+										obj.material[j].color.b *= deco.colorDepth[2];
+									}
 								}
-							}
-							loader.decorations[deco.models] = object;					
-						}, null,
-						// called when loading has errors
-						function (error) {
-							console.error("Unable to load the following model: ", deco.model, error);
-							loader.decorationsToLoad--;
-						});
-				}, null, 
-				function (error) {
-					console.error("Unable to load the following material: ", deco.material, error);
-				});
+								loader.decorations[deco.models] = object;					
+							}, null,
+							// called when loading has errors
+							function (error) {
+								console.error("Unable to load the following model: ", deco.model, error);
+								loader.decorationsToLoad--;
+							});
+					}, null, 
+					function (error) {
+						console.error("Unable to load the following material: ", deco.material, error);
+					});
+			}
+			else if (deco.models.endsWith(".json")) {
+				var request = new XMLHttpRequest();
+				request.open('GET', deco.models);
+				request.onreadystatechange = function() {
+					if (request.readyState == 4 && request.status == 200) {
+						var content;
+						try {
+					 		content = JSON.parse(request.responseText);
+					 	}
+					 	catch (err) {
+					 		// TODO error msg
+					 		console.log("Unable to load file");
+					 		console.log(err);
+					 		return;
+					 	}
+					 	loader.decorations[deco.models] = content.rootnode;					 	
+					}
+					else if (request.readyState == 4) {
+						// TODO handle if theme is not found
+						alert("Unable to find or open file: " + stageFile);
+						return;
+					}
+				}
+				request.send();	
+			}
 			// temporarily mark it as TRUE
 			this.decorations[deco.models] = true;
 			this.decorationsToLoad++;

@@ -61,6 +61,7 @@ function animate() {
 	}
 	checkNextNote();
 	moveNotes();
+	performFadingAnimation();
 	renderer.render(scene, camera);
 }
 
@@ -635,7 +636,7 @@ function movePlayer(dirX=0, dirZ=0) {
 	if (!jumpable()) return;
 	if (player.velocityY != 0) {
 		// If the player almost lands, save the next action to perform immediately after landing
-		if (player.velocityY < 0 && player.position.y < c_charDefaultPosY * 2)
+		if (player.velocityY < c_jumpInitVelocity)
 			nextMovement = [dirX, dirZ];
 		return;
 	}

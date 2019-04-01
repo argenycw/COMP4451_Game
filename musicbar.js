@@ -34,8 +34,7 @@ var fadeTime = 1000;			// The total time needed of fading of the flash area
 // For note movement calculation
 var initX = 120;
 var finalX = c_defaultFinalX;
-var screenTravelingTime = 2;	// # of second(s) a note needs to move to the hit center
-
+var screenTravelingTime = 3;	// # of second(s) a note needs to move to the hit center
 
 var currentProgress = 0;		// Store the progress of the song (in number of notes)
 
@@ -158,6 +157,8 @@ function setNoteExplosion(theme) {
 	explosion.setAttribute("opacity", 0);
 
 	explosion.flash = function() {
+		if (notesList.length == 0) return;
+
 		// Recalculate the size according to the screen width/height before each flash
 		let vh = parseFloat(scale.replace(/[a-zA-Z]/, ""));
 		g.setAttribute("vh", vh);
@@ -171,17 +172,18 @@ function setNoteExplosion(theme) {
 		// Fade out after flash
 		var opacity = parseFloat(explosion.getAttribute("opacity"));
 		explosion.setAttribute("opacity", 1);
-		setTimeout(explosion.fade, fadeTime / 20);
 	}
 
 	explosion.fade = function() {
 		var opacity = parseFloat(flashArea.getAttribute("opacity"));
 		opacity -= 0.05;
 		explosion.setAttribute("opacity", opacity);
-		if (opacity > 0)
-			setTimeout(explosion.fade, fadeTime / 20);
 	}
 	widget.screen.appendChild(explosion);
+}
+
+function performFadingAnimation() {
+	if (explosion) explosion.fade();
 }
 
 function initMusicBar(theme) {
@@ -288,10 +290,12 @@ function moveNotes() {
 
 		// translate the firework to the left
 		var cx = parseFloat(notesList[i].getAttribute("posX"));
-		var speed = parseFloat(notesList[i].getAttribute("speed"));
-		cx -= speed;
-		notesList[i].setAttribute("posX", cx);
-		notesList[i].setAttribute("x", cx + "%");
+		let oldTime = parseFloat(notesList[i].getAttribute("speed"));
+		let dx = trimPercentage(initX) - trimPercentage(finalX);
+		let noteInBarPercentage = (screenTravelingTime - (resourceLoader.song.currentTime - oldTime)) / screenTravelingTime;
+		let newX = trimPercentage(finalX) + noteInBarPercentage * dx;
+		notesList[i].setAttribute("posX", newX);
+		notesList[i].setAttribute("x", newX + "%");
 
 		// When the note hits the "block area" => Game over
 		var radius = trimPercentage(notesList[i].getAttribute("r"));
@@ -361,6 +365,7 @@ var svg_defs = [`
 `,`
 <linearGradient id="linear-gradient4" x1="100.83" y1="50.02" x2="300.03" y2="50.02" gradientTransform="matrix(1, 0, 0, -1, 0, 100)" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#bde4f8"/><stop offset="0.04" stop-color="#9bd7f2"/><stop offset="0.09" stop-color="#77c8ed"/><stop offset="0.15" stop-color="#57bbe7"/><stop offset="0.21" stop-color="#3bb1e3"/><stop offset="0.28" stop-color="#25a8df"/><stop offset="0.36" stop-color="#14a1dc"/><stop offset="0.46" stop-color="#099cda"/><stop offset="0.6" stop-color="#029ad9"/><stop offset="1" stop-color="#0099d9"/></linearGradient><linearGradient id="linear-gradient4-2" x1="102.74" y1="35.88" x2="250.36" y2="35.88" gradientTransform="matrix(1, 0, 0, -1, 0, 100)" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#cae9fa"/><stop offset="0.08" stop-color="#a3daf4"/><stop offset="0.19" stop-color="#78c9ed"/><stop offset="0.3" stop-color="#53bae7"/><stop offset="0.42" stop-color="#35aee2"/><stop offset="0.54" stop-color="#1ea5de"/><stop offset="0.67" stop-color="#0d9edb"/><stop offset="0.82" stop-color="#039ada"/><stop offset="1" stop-color="#0099d9"/></linearGradient><linearGradient id="linear-gradient4-3" x1="102.59" y1="59.73" x2="259.53" y2="59.73" xlink:href="#linear-gradient4-2"/>
 `]
+
 var svg_firework = [`
 <g id="Layer_2" data-name="Layer 2"><path d="M98.37,51a46.67,46.67,0,0,0,22.16,39.13c8.43,5.08,16.56,5.77,26.14,6.58,6.85.57,18.46,1.52,31.49-3.21,6-2.18,12.09-4.4,17.88-9,2.65-2.12,5.74-5.14,11.32-7.34,2.53-1,4.8-1.53,4.73-2-.09-.67-5-.67-9.32-.15-9.76,1.17-15.72,5-15.9,4.59-.5-1.12,11.7-10.81,25.38-12.39,2.06-.23,9.67-.93,18.26-1.31,2.5-.11,2.84-.1,4.06-.22,5.91-.57,8.53-1.94,15.83-3.36,1.19-.23,2.73-.53,4.67-.78,9.78-1.3,12.91.67,22.45-.14A62.6,62.6,0,0,0,286.24,60c7-1.61,14-4.43,13.76-5.2-.1-.37-1.76,0-5.05.15a67,67,0,0,1-17.39-1.49c-4.24-.85-6.36-1.27-9.06-2.48a46,46,0,0,0-6.11-2.6,37.3,37.3,0,0,0-5-1.13c-6-.89-13.21.14-15.48.37-10.64,1-22.58-5.11-28.75-12.45-2.75-3.26-3.11-4.87-8.06-11.29A67.46,67.46,0,0,0,196.81,15C188,7,182.14,4.61,180.09,3.83,176.19,2.35,170.78,1,161.82,1c-12.38,0-28.74.07-43.34,11.68C114.87,15.58,98.29,28.76,98.37,51Z" transform="translate(-97.87 -0.53)" style="stroke:#3586c8;stroke-miterlimit:10;fill:url(#linear-gradient)"/></g><g id="Layer_3" data-name="Layer 3"><path d="M101,54.57c-3.55-4.19.09-12.33,1.46-15.39,4-9,11.25-13.83,14.67-16a50.23,50.23,0,0,1,17.74-6.88c3.52-.66,18.51-3.48,29.81,3.06,2.45,1.41,6.82,4.48,12.68,7.94,1.18.7,2.69,1.57,4.69,3,3.08,2.18,4.13,3.45,9.38,6.36,15,8.28,27.43,10.19,27.21,11.16-.15.68-7.32-.83-18.19-1.84A165.91,165.91,0,0,0,179.69,45c-7.84.22-18.7.54-31,5-10.59,3.83-10.84,6.58-18.34,7.52-4.28.54-14.76,1-19.35,1-.08,0-.18,0-.31,0S103.74,57.76,101,54.57Z" transform="translate(-97.87 -0.53)" style="fill:url(#linear-gradient-2)"/><path d="M106.63,56.46h0a15.75,15.75,0,0,0,6.88,1.77c5,.07,32.32-7.86,42.79-10,7-1.45,13.77-1.32,27.36-1.07,16.66.31,26.58,2.25,32.87,3.82,8.51,2.12,13.44,4.33,13.3,4.89-.21.82-8.1-2.25-18.18.25-.38.09-1.44.44-3.34,1-4.1,1.22-7.07,2-7.37,2.11-6.3,1.75-21.45,12.17-31.8,17.74-6.91,3.71-15.62,8.29-27.52,9.47-12.36,1.23-19.5-2.08-22-3.4a33.07,33.07,0,0,1-5.81-3.91C102.73,69.81,98.05,52,100.33,50.79,101,50.44,102.64,51.39,106.63,56.46Z" transform="translate(-97.87 -0.53)" style="fill:url(#linear-gradient-3)"/></g>
 `,`
