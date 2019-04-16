@@ -31,13 +31,17 @@ function TitleCanvas(width, height, name, source, imageFile) {
 		ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
 	        ctx.drawImage(myself.image, x, y, width, height);
 	        //draw a box over the top
-	        ctx.font = "20px Arial";
+	        ctx.font = "20px cubic";
 	        ctx.fillStyle = 'white';
 	        ctx.textAlign = "center"; 
 	        ctx.fillText(name, x+width/2 ,y+height+25);
+		    ctx.strokeStyle = '#a00020';
+		    ctx.lineWidth = 2;
+		    ctx.strokeText(name, x+width/2 ,y+height+25);
 	        ctx.fillStyle = 'white';
 	        ctx.textAlign = "center"; 
 	        ctx.fillText(source, x+width/2 ,y+height+50);
+		    ctx.strokeText(source, x+width/2 ,y+height+50);
 
   	}
 

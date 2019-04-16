@@ -105,3 +105,8 @@
 .brown-rect-btn:hover > rect {
 	fill: #ccaa88;
 }
+
+@font-face {
+    font-family: 'cubic';
+    src: url('RequiresMoonshine.otf');
+}
