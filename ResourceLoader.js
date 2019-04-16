@@ -14,6 +14,10 @@ function ResourceLoader(mapFile="", themeFile="", stageFile="", mapFolder="", th
 	this.stage = null;
 	this.song = null;
 	this.player = null;
+
+	this.textures = {};
+	this.decorationsToLoad = 0;
+	this.decorations = {};
 	this.soundsToLoad = 0;
 	this.soundEffects = [];
 
@@ -22,7 +26,8 @@ function ResourceLoader(mapFile="", themeFile="", stageFile="", mapFolder="", th
 	this.stageCallback = null;
 
 	this.loadCompleted = function() {
-		return (this.map && this.theme && this.stage && this.song && this.song.readyState > 1);
+		return (this.map && this.theme && this.stage && this.allTexturesLoaded() &&
+			this.allDecorationLoaded() && this.song && this.song.readyState > 1);
 	}
 
 	this.allCallbackFilled = function() {
@@ -51,6 +56,8 @@ function ResourceLoader(mapFile="", themeFile="", stageFile="", mapFolder="", th
 			 		return;
 			 	}
 			 	loader.map = content;
+			 	loader.loadTextures();
+			 	loader.loadDecorations();
 			}
 			else if (request.readyState == 4) {
 				// TODO handle if map is not found
@@ -128,15 +135,135 @@ function ResourceLoader(mapFile="", themeFile="", stageFile="", mapFolder="", th
 	}
 
 	this.loadCharacter = function() {
-		var myself = this;
-		var loader = new THREE.GLTFLoader();
-		loader.load('models/dog.glb', function (gltf) {
+		var gltfLoader = new THREE.GLTFLoader();
+		gltfLoader.load('models/dog.glb', function (gltf) {
 			// ensure every mesh of the model will cast shadow
 			gltf.scene.traverse(node => {if (node instanceof THREE.Mesh) {node.castShadow = true;}});
-			myself.player = gltf;
+			loader.player = gltf;
 		}, undefined, function (error) {
 			console.error(error);
 		});
+	}
+
+	this.loadTextures = function() {
+		let platforms = this.map.platform;
+		for (let key in platforms) {
+			// Decoration
+			if (Array.isArray(platforms[key])) {
+				for (let i = 0; i < platforms[key].length; i++) {
+					let textures = platforms[key].texture;
+					for (let k in textures) {
+						if (loader.textures[textures[k]]) continue;
+						loader.textures[textures[k]] = true;
+						let texLoader = new THREE.TextureLoader();
+						texLoader.load(textures[k], function(texture) {
+							loader.textures[textures[k]] = texture;
+						}, null, null);
+					}					
+				}
+			}
+			// Other platforms
+			else {
+				let textures = platforms[key].texture;
+				for (let k in textures) {
+					if (loader.textures[textures[k]]) continue;
+					loader.textures[textures[k]] = true;
+					let texLoader = new THREE.TextureLoader();
+					texLoader.load(textures[k], function(texture) {
+						loader.textures[textures[k]] = texture;
+					}, null, null);
+				}
+			}
+		}
+	}
+
+	this.allTexturesLoaded = function() {
+		let tex = this.textures;
+		for (let key in tex) {
+			if (tex[key] === true) return false;
+		}
+		return true;
+	}
+
+	this.allDecorationLoaded = function() {
+		let tex = this.decorations;
+		for (let key in tex) {
+			if (tex[key] === true) return false;
+		}
+		return true;		
+	}
+
+	this.loadDecorations = function() {
+		let decoList = this.map.platform.decoration;
+		if (!decoList) return;
+		for (let i = 0; i < decoList.length; i++) {
+			let deco = decoList[i];
+			// avoid loading the same thing twice
+			if (this.decorations[deco.models]) continue;
+			// load the material beforehand
+			// for mtl and obj
+			if (deco.models.endsWith(".obj")) {
+				var mtlLoader = new THREE.MTLLoader();
+				mtlLoader.load(deco.material,
+					function (material) {
+						// Load the OBJ file then
+						var objLoader = new THREE.OBJLoader();
+						objLoader.setMaterials(material);
+						objLoader.load(deco.models,
+							// called when resource is loaded
+							function (object) {
+								// To increase the saturation of the color, if specified
+								// it is placed here instead of stage->renderDecoration so as to avoid 
+								// duplicated color multiplication, because there is only ONE material (by reference)
+								if (deco.colorDepth) {
+									let obj = object.children[deco.model];
+									for (let j = 0; j < obj.material.length; j++) {
+										obj.material[j].color.r *= deco.colorDepth[0];
+										obj.material[j].color.g *= deco.colorDepth[1];
+										obj.material[j].color.b *= deco.colorDepth[2];
+									}
+								}
+								loader.decorations[deco.models] = object;					
+							}, null,
+							// called when loading has errors
+							function (error) {
+								console.error("Unable to load the following model: ", deco.model, error);
+								loader.decorationsToLoad--;
+							});
+					}, null, 
+					function (error) {
+						console.error("Unable to load the following material: ", deco.material, error);
+					});
+			}
+			else if (deco.models.endsWith(".json")) {
+				var request = new XMLHttpRequest();
+				request.open('GET', deco.models);
+				request.onreadystatechange = function() {
+					if (request.readyState == 4 && request.status == 200) {
+						var content;
+						try {
+					 		content = JSON.parse(request.responseText);
+					 	}
+					 	catch (err) {
+					 		// TODO error msg
+					 		console.log("Unable to load file");
+					 		console.log(err);
+					 		return;
+					 	}
+					 	loader.decorations[deco.models] = content.rootnode;					 	
+					}
+					else if (request.readyState == 4) {
+						// TODO handle if theme is not found
+						alert("Unable to find or open file: " + stageFile);
+						return;
+					}
+				}
+				request.send();	
+			}
+			// temporarily mark it as TRUE
+			this.decorations[deco.models] = true;
+			this.decorationsToLoad++;
+		}
 	}
 
 	this.loadSoundEffects = function(folder, list) {
@@ -148,7 +275,7 @@ function ResourceLoader(mapFile="", themeFile="", stageFile="", mapFolder="", th
 				success++;
 			}
 			catch (e) {
-				console.log("Unable to load sound effect: " + list[i] + ":\n" + e);
+				console.warn("Unable to load sound effect: " + list[i] + ":\n" + e);
 				return;
 			}
 		}

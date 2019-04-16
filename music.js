@@ -72,9 +72,9 @@ function checkNextNote() {
 	if (resourceLoader.song.currentTime < noteTiming) return;
 	// Continue to check next note
 	if (notesContent[currentRow][currentCol] == '1') {
-		var speed1s = (initX - trimPercentage(finalX)) / c_FPS; // exactly the distance moved for 1 second
-		var speed = speed1s / screenTravelingTime;
-		pushJumpNote(noteTheme, speed);
+		//var speed1s = (initX - trimPercentage(finalX)) / c_FPS; // exactly the distance moved for 1 second
+		//var speed = speed1s / screenTravelingTime;
+		pushJumpNote(noteTheme, resourceLoader.song.currentTime);
 	}
 	currentCol++;
 	// Go to next row if reaches the end in the current row
@@ -100,6 +100,7 @@ function stageBegin() {
 
 function stageEnd() {
 	console.log("Stage finishes.");
+	if (widget.screen.contains(explosion)) widget.screen.removeChild(explosion);
 	pauseSong();
 	songStarted = false;
 	canCheckNextNote = false;

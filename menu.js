@@ -77,11 +77,11 @@ function showMainDialog() {
 		showSetting();
 	}
 
-	var title = widget.createSimpleText("Change Me", "50%", "20%", ["cubic", "brown-rect-text"], "5vw");
+	var title = widget.createSimpleText("Rhythm & Jump", "50%", "20%", ["cubic", "brown-rect-text"], "5vw");
 	var startSingleBtn = widget.createRectButton("Story Mode", "10%", "35%", "80%", "15%", ["brown-rect-btn", "cubic"], storyModeCallback);
 	var startMultiBtn = widget.createRectButton("Multiplayer", "10%", "55%", "80%", "15%", ["brown-rect-btn", "cubic"], multiplayerModeCallback);
 	var creditBtn = widget.createRectButton("Credit", "10%", "75%", "80%", "15%", ["brown-rect-btn", "cubic"], creditCallback);
-	var setting = widget.createDefinedSVG("88%", "13%", "#svg-setting", ["menu-round-btn"], settingCallback, "setting");
+	var setting = widget.createDefinedSVG("85%", "25%", "#svg-setting", ["menu-round-btn"], settingCallback, "setting");
 	dialog.appendChild(title);
 	dialog.appendChild(startSingleBtn);
 	dialog.appendChild(startMultiBtn);
@@ -174,4 +174,9 @@ function menuWaitUntilLoaded() {
 		showMainDialog();
 	}
 	else setTimeout(menuWaitUntilLoaded, 200);
+}
+
+function playChoiceSound() {
+	g_resourceLoader.soundEffects[3].currentTime = 0;
+	g_resourceLoader.soundEffects[3].play();
 }
