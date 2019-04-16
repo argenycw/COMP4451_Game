@@ -31,10 +31,22 @@ var notesContent = []			// Store the timing of jumping of the full song (2D arra
 var currentRow = 0;				// Current row reading in notesContent
 var currentCol = 0;				// Current column reading in notesContent
 
+var titleCanvas = null;
+var titleName = null;
+var titleSource = null;
+var titleImageFile = null;
+var titleImageWidth = 0;
+var titleImageHeight = 0
+
 function notesOnSuccessLoad(content) {
 	readNotes(content);
 	currentRow = 0;
 	currentCol = 0;
+	titleName = content.name;
+	titleSource = content.source;
+	titleImageFile = content.image;
+	titleImageWidth = parseInt(content.imageWidth);
+	titleImageHeight = parseInt(content.imageHeight);
 }
 
 // To load the song, and save the notes required to hit globally
@@ -74,10 +86,16 @@ function checkNextNote() {
 
 function stageBegin() {
 	console.log("Stage readys.");
-	// Countdown
-	var waitBlinking = widget.blinkSimpleText(stageBeginMsg, "50%", "50%", ["cubic", "black-4-white"], 100);
-	setTimeout(startSong, waitBlinking);
-	setTimeout(function() {canCheckNextNote = true;}, waitPeriod + waitBlinking);
+	// create title canvas and show it on screen
+	console.log(titleImageWidth);
+	console.log(titleImageHeight);
+	titleCanvas = new TitleCanvas(titleImageWidth, titleImageHeight, titleName, titleSource, titleImageFile);
+	setTimeout(function() {
+		// Countdown
+		var waitBlinking = widget.blinkSimpleText(stageBeginMsg, "50%", "50%", ["cubic", "black-4-white"], 100);
+		setTimeout(startSong, waitBlinking);
+		setTimeout(function() {canCheckNextNote = true;}, waitPeriod + waitBlinking);
+	}, titleCanvas.duration)
 }
 
 function stageEnd() {
