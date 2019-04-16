@@ -20,7 +20,7 @@ function TitleCanvas(width, height, name, source, imageFile) {
 	// move with equation y=x^3
   	this.moveTitle = function() {
 		if (myself.t < Math.pow(window.innerWidth, 1/3)) {
-		  	myself.drawTitle(myself.t*myself.t*myself.t + window.innerWidth/2 - myself.width/2 , window.innerHeight/2 - myself.height/2, myself.width, myself.height);
+		  	myself.drawTitle(myself.t*myself.t*myself.t + window.innerWidth/2 - myself.width/2 , window.innerHeight/2 - myself.height/1.2, myself.width, myself.height);
 		  	myself.t += 0.04;
 		  	setTimeout(myself.moveTitle, 10);
 		} else { myself.removeCanvas(); }
