@@ -1,6 +1,6 @@
 @font-face {
-	font-family: "Requires Moonshine";
-	src: url("./RequiresMoonshine.otf");
+    font-family: 'Requires Moonshine';
+    src: url('./RequiresMoonshine.otf');
 }
 
 .cubic {
