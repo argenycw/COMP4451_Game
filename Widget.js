@@ -48,7 +48,8 @@ function Widget(x=0, y=0, width="100%", height="100%") {
 	}
 
 	// Return a rectangular button with a text embedded in the middle
-	this.createRectButton = function(textContent, x, y, width, height, classListBtn=[], onclick=function(){}, arg=null) {
+	this.createRectButton = function(textContent, x, y, width, height, classListBtn=[], onclick=function(){}, 
+			arg=null, id="w-"+Object.keys(myself.widgets).length) {
 		var group = document.createElementNS(svgns, "svg");
 		group.setAttribute("x", x);
 		group.setAttribute("y", y);
@@ -61,8 +62,12 @@ function Widget(x=0, y=0, width="100%", height="100%") {
 		btn.setAttribute("y", 0);
 		btn.setAttribute("width", "100%");
 		btn.setAttribute("height", "100%");
+
+		var playSound = true;
 		for (var i = 0; i < classListBtn.length; i++) {
 			group.classList.add(classListBtn[i]);
+			// Set the flag as disabled
+			if (classListBtn[i] == "btn-disabled") group.disabled = true;
 		}
 		// The function depends on whether there is argument passed
 		if (arg === null) group.addEventListener("click", onclick);
@@ -80,16 +85,16 @@ function Widget(x=0, y=0, width="100%", height="100%") {
 		// Append the elements into the group
 		group.appendChild(btn);
 		group.appendChild(text);
+		myself.widgets[id] = group;
 		return group;
 	}
 
 	// Return a rectangular button with a text embedded in the middle that is already on the screen
 	this.showRectButton = function(textContent, x, y, width, height, classListBtn=[], onclick=function(){},
-									id="w-"+Object.keys(myself.widgets).length) {
+									arg=null, id="w-"+Object.keys(myself.widgets).length) {
 		// Create a rect button
 		var group = myself.createRectButton(textContent, x, y, width, height, classListBtn, onclick);
-		// append the text into the widget dictionary
-		myself.widgets[id] = group;
+		// append the text into the widget dictionary		
 		myself.screen.appendChild(group);
 		return group;
 	}
@@ -105,14 +110,14 @@ function Widget(x=0, y=0, width="100%", height="100%") {
 		}
 		if (size != 0) text.style.fontSize = size;
 		text.appendChild(document.createTextNode(content));
+		myself.widgets[id] = text;
 		return text;
 	}
 
 	// Return an svg text that is already on the screen
 	this.showSimpleText = function(content, x, y, classList=[], size=0, id="w-"+Object.keys(myself.widgets).length) {
-		var text = myself.createSimpleText(content, x, y, classList, size);
+		var text = myself.createSimpleText(content, x, y, classList, size, id);
 		// append the text into the widget dictionary
-		myself.widgets[id] = text;
 		myself.screen.appendChild(text);
 		return text;
 	}
@@ -127,6 +132,22 @@ function Widget(x=0, y=0, width="100%", height="100%") {
 		}
 		// return the time needed to wait for
 		return (content.length + 1) * time;
+	}
+
+	this.createForeignInputField = function(x, y, width, height, classList=[], id="w-"+Object.keys(myself.widgets).length) {
+		var obj = document.createElementNS(svgns, "foreignObject");
+		obj.setAttribute("x", x);
+		obj.setAttribute("y", y);
+		obj.setAttribute("width", width);
+		obj.setAttribute("height", height);
+		var input = document.createElement("input");
+		input.setAttribute("type", "text");
+		input.setAttribute("maxlength", "20");
+		for (var i = 0; i < classList.length; i++) {
+			input.classList.add(classList[i]);
+		}
+		obj.appendChild(input);
+		return obj;
 	}
 
 	this.showDefinedSVG = function(x, y, href, classList=[], onclick=null, id="w-"+Object.keys(myself.widgets).length) {

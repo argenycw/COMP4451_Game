@@ -14,14 +14,19 @@
 	fill: white;
 }
 
-.black-full {
-	stroke: black;
+.black-fill {
+	stroke: none;
 	fill: black;	
 }
 
 .white-fill {
 	stroke: none;
 	fill: white;	
+}
+
+.red-fill {
+	stroke: none;
+	fill: #a00020;
 }
 
 /* circle-buttons */
@@ -43,6 +48,18 @@
 	fill: #ccaa88;
 }
 
+.menu-text-input {
+	height: 100%;
+	width: 100%;
+	border: 2px solid black;
+	border-radius: 4px;
+	font-family: "Requires Moonshine";
+	font-size: 4vh;
+	padding: 0 8px 0 8px;
+}
+
+.menu-text-input::selection { color: white; }
+.menu-text-input::-moz-selection { color: white; }
 
 /* Green series: for winning dialog */
 .green-dialog {
@@ -100,6 +117,10 @@
 	cursor: pointer;
 }
 
+.btn-disabled rect {
+	cursor: default;	
+}
+
 .brown-rect-btn text {
 	stroke: none;
 	fill: black;
@@ -107,6 +128,19 @@
 	cursor: pointer;
 }
 
+.btn-disabled text {
+	fill: #666;	
+	cursor: default;	
+}
+
 .brown-rect-btn:hover > rect {
 	fill: #ccaa88;
 }
+
+.btn-disabled:hover > rect {
+	fill: #ddccbb;	
+}
+
+.rect-btn-sm text {
+	font-size: 1.4vw;
+} 

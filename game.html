@@ -18,6 +18,16 @@
 		    -ms-user-select: none;
 		    user-select: none;
 		}
+		.svg-selectable {
+			-webkit-touch-callout: auto;
+		    -webkit-user-select: auto;
+		    -khtml-user-select: auto;
+		    -moz-user-select: auto;
+		    -ms-user-select: auto;
+		    user-select: auto;
+		}
+		.svg-selectable::selection { background: black; fill: white; }
+		.svg-selectable::-moz-selection { background: black; fill: white; }
 	</style>
 	<script src="lib/three.js"></script>
 	<script src="lib/GLTFLoader.js"></script>
@@ -25,12 +35,15 @@
 	<script src="lib/MTLLoader.js"></script>
 	<script src="lib/RoundEdgedBox.js"></script>
 	<script src="lib/MeshLine.js"></script>
+	<!-- Local script does work: <script src="lib/peerjs.min.js"></script> -->
+	<script src="https://unpkg.com/peerjs@1.0.0/dist/peerjs.min.js"></script>
 	<script src="ResourceLoader.js"></script>
 	<script src="Widget.js"></script>
 	<script src="menu.js"></script>
 	<script src="stage.js"></script>
 	<script src="musicbar.js"></script>
 	<script src="music.js"></script>
+	<script src="conn.js"></script>
 </head>
 <body>
 	<script>
