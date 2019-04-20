@@ -14,6 +14,8 @@ function ResourceLoader(mapFile="", themeFile="", stageFile="", mapFolder="", th
 	this.stage = null;
 	this.song = null;
 	this.player = null;
+	this.player2 = null;
+	this.locked = false;
 
 	this.textures = {};
 	this.decorationsToLoad = 0;
@@ -26,7 +28,7 @@ function ResourceLoader(mapFile="", themeFile="", stageFile="", mapFolder="", th
 	this.stageCallback = null;
 
 	this.loadCompleted = function() {
-		return (this.map && this.theme && this.stage && this.allTexturesLoaded() &&
+		return (this.map && this.theme && this.stage && this.allTexturesLoaded() && this.player && this.player2 &&
 			this.allDecorationLoaded() && this.song && this.song.readyState > 1);
 	}
 
@@ -144,6 +146,17 @@ function ResourceLoader(mapFile="", themeFile="", stageFile="", mapFolder="", th
 			console.error(error);
 		});
 	}
+
+	this.loadCharacter2 = function() {
+		var gltfLoader = new THREE.GLTFLoader();
+		gltfLoader.load('models/stork.glb', function (gltf) {
+			// ensure every mesh of the model will cast shadow
+			gltf.scene.traverse(node => {if (node instanceof THREE.Mesh) {node.castShadow = true;}});
+			loader.player2 = gltf;
+		}, undefined, function (error) {
+			console.error(error);
+		});
+	}	
 
 	this.loadTextures = function() {
 		let platforms = this.map.platform;
@@ -291,6 +304,7 @@ function ResourceLoader(mapFile="", themeFile="", stageFile="", mapFolder="", th
 		this.loadTheme();
 		this.loadStage();
 		this.loadCharacter();
+		this.loadCharacter2();
 	}
 
 }

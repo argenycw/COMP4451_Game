@@ -67,6 +67,7 @@
 		}, false);
 
 		function start(stage) {
+			multiplaying = false;
 			// Load resources using ResourceLoader
 			let num = parseInt(stage);
 			let mapName = "map" + ((num < 10) ? '0' + num : num) + ".json";
@@ -82,6 +83,32 @@
 			waitUntilLoaded();
 		}
 
+		function startMulti(stage) {
+			multiplaying = true;
+			loseInMult = false;
+			winInMult = false;
+    		peerLost = false;
+    		peerEnd = false;
+    		playMissed = 0;
+    		peerMissed = 0;
+			// Load resources using ResourceLoader
+			let num = parseInt(stage);
+			// map and stage starts from 100
+			let mapName = "map10" + num + ".json";
+			let themeName = "theme0.json";
+			let stageName = "stage10" + num + ".json";
+			stageLevel = num;
+			resourceLoader = new ResourceLoader(mapName, themeName, stageName, mapFolder, themeFolder, noteFolder);
+			resourceLoader.mapCallback = stageOnSuccessLoad;
+			resourceLoader.themeCallback = themeOnSuccessLoad;
+			resourceLoader.stageCallback = notesOnSuccessLoad;
+			// Lock the resource loader to wait until peer is also loaded
+			resourceLoader.locked = true;
+			resourceLoader.load();
+			widget.showLoadingScreen();
+			waitUntilMultiLoaded();			
+		}
+
 		function waitUntilLoaded() {
 			if (resourceLoader.loadCompleted()) {
 				resourceLoader.runCallbacks();
@@ -91,6 +118,25 @@
 				stageBegin();
 			}
 			else setTimeout(waitUntilLoaded, 200);
+		}
+
+		function waitUntilMultiLoaded() {
+			if (resourceLoader.loadCompleted()) {
+				signal('{"action": {"type": "loaded"}}');
+				resourceLoader.runCallbacks();
+				// No pause/resume button to perform synchorization
+				let w = widget.showSimpleText("Misses: 0", "80%", "10%", ["black-2-white", "cubic"], "5vh", "multi-missed-cnt");
+				function tryToEnter() {
+					if (resourceLoader.locked) {
+						setTimeout(tryToEnter, 50);
+						return;
+					}
+					widget.clearLoadingScreen();
+					stageBegin();
+				}
+				tryToEnter();
+			}
+			else setTimeout(waitUntilMultiLoaded, 200);			
 		}
 
 		function loadGlobalResources() {

@@ -231,9 +231,10 @@ function Widget(x=0, y=0, width="100%", height="100%") {
 	}
 
 	this.removeAll = function() {
-		for (var key in myself.widgets)
+		for (var key in myself.widgets) {
 			myself.widgets[key].parentNode.removeChild(myself.widgets[key]);
 			delete myself.widgets[key];
+		}
 	}
 
 	// Some SVG definition

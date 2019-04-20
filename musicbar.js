@@ -300,11 +300,16 @@ function moveNotes() {
 		// When the note hits the "block area" => Game over
 		var radius = trimPercentage(notesList[i].getAttribute("r"));
 		if (cx < trimPercentage(hitX) - radius) {
-			// DEBUG MODE: Remove that note and allow tester continue playing
-			if (DEBUG) {
+			// Multiplayer / DEBUG MODE: Remove that note and allow tester continue playing
+			if (DEBUG || multiplaying) {
 				removeNote(notesList[i]);
 				notesList.shift();
 				i--;
+				// increase failed count
+				if (!(loseInMult || winInMult)) {
+					let w = widget.getWidget("multi-missed-cnt");
+					w.textContent = "Missed: " + (++playMissed);
+				}
 			}
 			// RELEASE MODE: Game Over
 			else {

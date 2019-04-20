@@ -14,6 +14,12 @@
 	fill: white;
 }
 
+.black-2-white {
+	stroke: black;
+	stroke-width: 2;
+	fill: white;
+}
+
 .black-fill {
 	stroke: none;
 	fill: black;	
@@ -144,3 +150,7 @@
 .rect-btn-sm text {
 	font-size: 1.4vw;
 } 
+
+.transparent-50 {
+	opacity: 0.5;
+}

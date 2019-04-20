@@ -44,24 +44,40 @@ var audioListener = null;
 var stageLevel;
 var player = null;
 var playerX = 0, playerZ = 0;		// save the x and z position in currentMap
+var peerPlayer = null;
+var peerX = 0, peerZ = 0;			// save the x and z position in currentMap
 var currentMap = [];
 var dynamicPlatformsList = [];
 var nextMovement = null;			// To make a smooth control, save the next movement to perform
 var fallingY = -5;					// After fallingY, "fall.wav" will be played
 var losingY = -100;					// The minimum y the player can reach not to lose
 
+var alt = false;
 // ==================================================================
 function animate() {
 	// requestAnimationFrame(animate);
 	moveDynamicPlatforms();
 	if (player) {
 		playerFall();
-		camera.position.set(player.position.x, 20, player.position.z - 20);
-		camera.lookAt(player.position.x, 0, player.position.z);
+		// lost in multiplayer mode => camera follows peer
+		if (loseInMult || winInMult) {
+			camera.position.set(peerPlayer.position.x, 20, peerPlayer.position.z - 20);
+			camera.lookAt(peerPlayer.position.x, 0, peerPlayer.position.z);
+		}
+		else {
+			camera.position.set(player.position.x, 20, player.position.z - 20);
+			camera.lookAt(player.position.x, 0, player.position.z);
+		}
 	}
 	checkNextNote();
 	moveNotes();
 	performFadingAnimation();
+	if (multiplaying) {
+		if (alt) {
+			sendGameData();
+		}
+		alt = !alt;
+	}
 	renderer.render(scene, camera);
 }
 
@@ -118,10 +134,10 @@ function getMapElement(z, x, readSign=true) {
 }
 
 // Create a single rectangular platform
-function renderPlatform(platformAttr) {
+function renderPlatform(platformAttr, rx=1, ry=1, rz=1) {
 	// Special scene: all platforms are in wireframe
 	if (platformAttr.wireframe) {
-		var geometry = new THREE.CubeGeometry(c_PlatformSize[0], c_PlatformSize[1], c_PlatformSize[2]);
+		var geometry = new THREE.CubeGeometry(c_PlatformSize[0] * rx, c_PlatformSize[1] * ry, c_PlatformSize[2] * rz);
 		var wireframe = new THREE.EdgesGeometry(geometry); // planes in squares but not triangles
 		var platform = new THREE.LineSegments(wireframe, new THREE.LineBasicMaterial({color: 0xffffff}));
 		return platform;
@@ -130,7 +146,7 @@ function renderPlatform(platformAttr) {
 	else {
 		var source = platformAttr.texture;
 		var radius = platformAttr.edgeRadius ? platformAttr.edgeRadius : c_PlatformDefRadius;
-		var box = RoundEdgedBox(c_PlatformSize[0], c_PlatformSize[1], c_PlatformSize[2], radius);
+		var box = RoundEdgedBox(c_PlatformSize[0] * rx, c_PlatformSize[1] * ry, c_PlatformSize[2] * rz, radius);
 		// var box = new THREE.CubeGeometry(c_PlatformSize[0], c_PlatformSize[1], c_PlatformSize[2]);
 		var textureTop = new THREE.MeshLambertMaterial({map: resourceLoader.textures[source.top]});
 		var textureSide = new THREE.MeshLambertMaterial({map: resourceLoader.textures[source.others]});
@@ -228,18 +244,28 @@ function buildPlatforms(stage, platformAttr) {
 				break;
 			case 'S': // Starting platform
 				var platform = renderPlatform(platformAttr.normal);
+				var type = parseInt(row[j][1]);
 				platform.type = platformTypes.NORMAL;
 				var x_mid = j * (c_PlatformSize[0] + c_PlatformSep);
 				platform.position.set(x_mid, 0, i * (c_PlatformSize[2] + c_PlatformSep));
 				scene.add(platform);
-				// The camera will take this platform as the center
-				camera.position.x = x_mid;
-				// Place player, use a sphere as placeholder
-				player = createPlayer(x_mid);
-				scene.add(player);
-				playerX = j;
-				playerZ = i;
-				// sunlight.target = player;
+				// Place player if necessary
+				if (!type || type == gameid) {
+					// The camera will take this platform as the center
+					camera.position.x = x_mid;
+					if (!type) player = createPlayer(x_mid); // single
+					else player = createPlayer(x_mid, type); // multiplayer
+					playerX = j;
+					playerZ = i;
+					scene.add(player);
+				}
+				// otherwise place peer character
+				else {
+					peerPlayer = createPlayer(x_mid, type);
+					peerX = j;
+					peerZ = i;
+					scene.add(peerPlayer);
+				}
 				mapRow.push(platform);
 				break;
 			case 'F': // Destination
@@ -410,7 +436,9 @@ function gamePauseToggle() {
 		clearTimeout(nextNoteTimeout);		
 		// change the svg icon as well
 		var pauser = widget.getWidget("pause-resume");
-		pauser.setAttribute("href", "#svg-play");
+		if (pauser) {
+			pauser.setAttribute("href", "#svg-play");
+		}
 		resourceLoader.song.pause();
 	}
 	// Resume
@@ -421,7 +449,9 @@ function gamePauseToggle() {
 		paused = false;
 		// change the svg icon as well
 		var pauser = widget.getWidget("pause-resume");
-		pauser.setAttribute("href", "#svg-pause");
+		if (pauser) {
+			pauser.setAttribute("href", "#svg-pause");
+		}
 		resourceLoader.song.play();
 	}
 }
@@ -431,10 +461,34 @@ var backCallBack = function () {
 	document.removeEventListener("keydown", onKeyDown);
 	scene = new THREE.Scene();
 	renderer.render(scene, camera);
-	var musicbar = svg; //svg in musicbar.js
+	var musicbar = svg; // svg in musicbar.js
 	musicbar.parentNode.removeChild(musicbar);
 	widget.removeAll();
 	mainMenu();
+}
+
+function backMulti(arg=false) {
+	document.removeEventListener("keydown", onKeyDown);
+	scene = new THREE.Scene();
+	renderer.render(scene, camera);
+	var musicbar = svg; // svg in musicbar.js
+	musicbar.parentNode.removeChild(musicbar);
+	widget.removeAll();
+	// TODO return to previous menu, but not disconnecting
+	if (arg) terminateConnection();
+	mainMenu();
+}
+
+function quitMulti(disconnect=false) {
+	document.removeEventListener("keydown", onKeyDown);
+	scene = new THREE.Scene();
+	renderer.render(scene, camera);
+	var musicbar = svg; // svg in musicbar.js
+	musicbar.parentNode.removeChild(musicbar);
+	widget.removeAll();
+	// TODO return to previous menu, but not disconnecting
+	if (disconnect) terminateConnection();
+	mainMenu();	
 }
 
 // callback function for restartBtn
@@ -445,7 +499,8 @@ var restart = function() {
 	var musicbar = svg; // svg in musicbar.js
 	musicbar.parentNode.removeChild(musicbar);
 	widget.removeAll();
-	start(stageLevel);
+	if (multiplaying) startMulti(stageLevel);
+	else start(stageLevel);
 }
 
 // When the player wins the currentStage
@@ -466,7 +521,14 @@ function stageClear() {
 	dialog.appendChild(backBtn);
 }
 
-
+// When the player reach the destination in multiplayer mode
+function stageClearMulti() {
+	winInMult = true;
+	widget.showSimpleText("Stage Clear", "50%", "25%", ["cubic", "green-rect-text", "transparent-50"], "5vw", "win-mult");
+	if (widget.screen.contains(explosion)) widget.screen.removeChild(explosion);
+	songStarted = false;
+	canCheckNextNote = false;
+}
 
 // When the player loses the currentStage for any reason
 function stageFail() {
@@ -483,6 +545,61 @@ function stageFail() {
 	dialog.appendChild(gameoverMsg);
 	dialog.appendChild(restartBtn);
 	dialog.appendChild(backBtn);
+}
+
+// When the player loses the currentStage for any reason in multiplayer mode
+function stageFailMulti() {
+	loseInMult = true;
+	widget.showSimpleText("Game Over", "50%", "25%", ["cubic", "brown-rect-text", "transparent-50"], "5vw", "game-over-mult");
+	if (widget.screen.contains(explosion)) widget.screen.removeChild(explosion);
+	songStarted = false;
+	canCheckNextNote = false;
+}
+
+function stageEndMulti() {
+	// stop the game
+	if (!paused) gamePauseToggle();
+	let cnt1 = playMissed;
+	let cnt2 = peerMissed;
+	// Fade out background
+	widget.fadeScreenWhite(0.8, 5000);
+	stageEnd();
+	// Clear the failed score and game over message
+	widget.remove("multi-missed-cnt");
+	widget.remove("game-over-mult");
+	widget.remove("win-mult");
+	// display the dialog of losing
+	let color = (winInMult) ? "green" : "brown";
+	var dialog = widget.showDialog("25%", "25%", "50%", "50%", [color + "-dialog"], "mult-ending-dialog");
+	var missed1 = widget.createSimpleText(cnt1 + " Miss from You", "25%", "35%", ["cubic", "black-fill"], "2vw");
+	var missed2 = widget.createSimpleText(cnt2 + " Miss from Peer", "75%", "35%", ["cubic", "black-fill"], "2vw");
+	dialog.appendChild(missed1);
+	dialog.appendChild(missed2);
+	var endMsg;
+	if (winInMult) endMsg = widget.createSimpleText("You Win", "50%", "20%", ["cubic", color + "-rect-text"], "4vw");
+	else endMsg = widget.createSimpleText("You Lose", "50%", "20%", ["cubic", color + "-rect-text"], "4vw");
+	dialog.appendChild(endMsg);
+	if (gameid == 1) { // game host: able to choose to restart or back to menu
+		var restartBtn = widget.createRectButton("Restart", "30%", "45%", "40%", "20%", [color + "-rect-btn", "cubic"], () => {
+			signal('{"action": {"type": "restart"}}');
+			restart();
+		});
+		var backBtn = widget.createRectButton("Back", "30%", "70%", "40%", "20%", [color + "-rect-btn", "cubic"], () => {
+			signal('{"action": {"type": "back"}}');
+			backMulti(false);
+		});	
+		dialog.appendChild(restartBtn);
+		dialog.appendChild(backBtn);
+	}
+	else { // joiner: able to disconnect
+		var instructMsg = widget.createSimpleText("waiting game host to restart / back...", "50%", "60%", ["black-fill", "cubic"], "1.8vw");
+		var dcBtn = widget.createRectButton("Quit", "30%", "70%", "40%", "20%", [color + "-rect-btn", "cubic"], () => {
+			signal('{"action": {"type": "quit"}}');
+			quitMulti(false);
+		});
+		dialog.appendChild(instructMsg);
+		dialog.appendChild(dcBtn);
+	}
 }
 
 // ==================================================================
@@ -512,10 +629,11 @@ function onKeyDown(event) {
 	return;
 }
 
-function createPlayer(x_mid) {
-	var player = resourceLoader.player.scene;
+function createPlayer(x_mid, type=1) {
+	console.log(type);
+	let player = (type == 1) ? resourceLoader.player.scene : resourceLoader.player2.scene;
 	// embed animations into player
-	player.animations = resourceLoader.player.animations;
+	player.animations = (type == 1) ? resourceLoader.player.animations : resourceLoader.player2.animations;
 	player.mixer = new THREE.AnimationMixer(player);
 	if (player.animations.length > 0) { // Only add animation when it exists
 	    const action = player.mixer.clipAction(player.animations[0]);
@@ -530,8 +648,7 @@ function createPlayer(x_mid) {
 	let v3 = new THREE.Vector3(1, 1, 1);
 	boundingBox.getSize(v3);
 	let ratio = 2 * 3 * c_charRadius / (v3.x + v3.y + v3.z);
-	player.scale.set(ratio, ratio, ratio); // for dog
-	// player.scale.set(0.05, 0.05, 0.05); // for stork
+	player.scale.set(ratio, ratio, ratio);
 	player.castShadow = true;
 	player.position.x = x_mid;
 	player.position.y += c_charDefaultPosY;
@@ -544,6 +661,7 @@ function createPlayer(x_mid) {
 
 // To handle the jumping/falling motion of the player
 function playerFall() {
+	if (multiplaying && (loseInMult || winInMult)) return;
 	if (player.velocityX == 0 && player.velocityY == 0 && player.velocityZ == 0) return;
 	// Y axis rising/falling
 	player.position.y += player.velocityY / c_FPS;
@@ -555,7 +673,8 @@ function playerFall() {
 		if (platform.type == platformTypes.DECORATION) {
 			// Boom and lose
 			playCollideSound();
-			stageFail();
+			if (multiplaying) stageFailMulti();
+			else stageFail();
 			return;
 		}
 		// Play the sound effect of landing
@@ -583,7 +702,8 @@ function playerFall() {
 		}
 		// Check if the player is landing on the destination (Winning)
 		if (platform.type == platformTypes.DESTINATION) {
-			stageClear();
+			if (multiplaying) stageClearMulti();
+			else stageClear();
 			return;
 		}
 		// Handle unperformed movement
@@ -605,7 +725,10 @@ function playerFall() {
 		player.position.z += player.velocityZ / c_FPS;
 		// Check if the player "loses" by falling out from the platforms
 		if (player.position.y < fallingY) startFallSound();
-		if (player.position.y < losingY) stageFail();
+		if (player.position.y < losingY) {
+			if (multiplaying) stageFailMulti();
+			else stageFail();
+		}
 	}
 }
 
@@ -632,6 +755,7 @@ function intersectPlatform(platform) {
 
 function movePlayer(dirX=0, dirZ=0) {
 	if (!player) return;
+	if (multiplaying && (loseInMult || winInMult)) return;
 	// Unable to jump when there is no notes
 	if (!jumpable()) return;
 	if (player.velocityY != 0) {

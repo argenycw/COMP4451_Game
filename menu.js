@@ -12,8 +12,8 @@
 const c_maxStages = 20;
 const gridPerRow = 6;
 const multiStage = [
-	{stage: 1, name: "Plain"},
-	{stage: 2, name: "Mountain"}
+	{stage: 1, name: "Tutorial"},
+	{stage: 2, name: "In Progress..."}
 ]
 // # Global objects and variables
 var m_resourceLoader = null;
@@ -127,7 +127,7 @@ function enableMultiplayerStart() {
 		startBtn.classList.remove("btn-disabled");
 	}
 	startBtn.addEventListener("click", (event) => {
-		signal('{"action": "Selecting stage..."}');
+		signal('{"action": {"type": "Selecting stage..."}}');
 		widget.remove(dialog);
 		stageSelectionMult();
 	});
@@ -209,18 +209,18 @@ function stageSelectionMult() {
 		multiplayer();
 	});
 
-	for (var i = 0; i < multiStage.length; i++) {
+	for (let i = 0; i < multiStage.length; i++) {
 		let stage = multiStage[i];
 		var playStageI = function(stage) {
-			console.log("play stage " + stage);
-			/*
+			// Signal the peer to begin stage i
+			signal('{"action": {"type": "starting", "stage": ' + i + '}}');
+			// Start stage normally
 			widget.remove(dialog);
 			widget.remove("fade");
-			//TODO: loading scene
 			clearInterval(animationInterval);
 	 		scene = new THREE.Scene();
 			renderer.render(scene, camera);
-			start(stage);*/
+			startMulti(stage);
 		}
 		// Create the rectangle button to enter the stage
 		var grid = widget.createRectButton(stage.name, "25%", (i*1.5+3)*10+"%", "50%", "10%", ["brown-rect-btn", "cubic"], 

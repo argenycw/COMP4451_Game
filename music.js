@@ -87,8 +87,8 @@ function checkNextNote() {
 function stageBegin() {
 	console.log("Stage readys.");
 	// create title canvas and show it on screen
-	console.log(titleImageWidth);
-	console.log(titleImageHeight);
+	// console.log(titleImageWidth);
+	// console.log(titleImageHeight);
 	titleCanvas = new TitleCanvas(titleImageWidth, titleImageHeight, titleName, titleSource, titleImageFile);
 	setTimeout(function() {
 		// Countdown

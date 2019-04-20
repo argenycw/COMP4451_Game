@@ -5,9 +5,18 @@
 // #================================================================#
 
 // # Global objects and variables
+var multiplaying = false;
+var gameid = 1; // 1 for host, 2 for join
 var peer = null;
 var conn = null;
 var lastPeerId = null;
+
+var loseInMult = false;
+var winInMult = false;
+var peerEnd = false;
+
+var playMissed = 0;
+var peerMissed = 0;
 
 // Create the Peer object for our end of the connection.
 function initialize(peerId=null) {
@@ -65,6 +74,7 @@ function initialize(peerId=null) {
 function host() {
 	// randomly generate a string
 	let randString = generateRandomId();
+    gameid = 1;
 	initialize(randString);
 	return randString;
 }
@@ -75,6 +85,7 @@ function generateRandomId() {
 
 // Create the connection between the two Peers.
 function join(peerId=null) {
+    gameid = 2;
 	randString = generateRandomId();
 	initialize(randString);
 
@@ -107,10 +118,11 @@ function join(peerId=null) {
 	    	// convert the message into json
 	    	try {
 	    		var data = JSON.parse(msg);
-	    		process(data);
 	    	} catch (err) {
 	    		console.error("Invalid JSON format:", err);
+                console.log("data received:", msg);
 	    	}
+            process(data);
 	    });
 	    conn.on('close', function () {
 	        console.log("Connection closed");
@@ -120,13 +132,15 @@ function join(peerId=null) {
 
 // Triggered once a connection has been achieved.
 function hostReady() {
-    conn.on('data', function (data) {
+    conn.on('data', function (msg) {
     	try {
     		var data = JSON.parse(msg);
-    		process(data);
     	} catch (err) {
     		console.error("Invalid JSON format:", err);
+            console.log("Original message: ", msg);
+            return;
     	}
+        process(data);        
     });
     conn.on('close', function () {
         console.log("connection reset...");
@@ -165,17 +179,105 @@ function signal(msg) {
     }
 }
 
+// Build the information to communicate during the progress of the stage
+function sendGameData() {
+    if (paused) return;
+    let data = {
+        "game": {
+            "position": [player.position.x, player.position.y, player.position.z],
+            "velocity": [player.velocityX, player.velocityY, player.velocityZ],
+            "time": resourceLoader.song.currentTime,
+            "missed": playMissed
+        }
+    };
+    if (loseInMult) {
+        data.game.lost = loseInMult;
+    }
+    if (winInMult) {
+        data.game.win = winInMult;
+    }
+    signal(JSON.stringify(data));
+}
+
 // Process the data in json
 function process(data) {
 	if (data.error) console.error(data.error);
 	if (data.action) {
 		processAction(data.action);
 	}
+    if (data.game) {
+        processGameData(data.game);
+    }
 }
 
+// Action: only available in menu and stage selection
 function processAction(action) {
 	let hostStatus = widget.getWidget("hostStatus");
 	let joinStatus = widget.getWidget("joinStatus");
-	if (hostStatus) hostStatus.textContent = action;
-	else if (joinStatus) joinStatus.textContent = action;
+	if (hostStatus) hostStatus.textContent = action.type;
+	else if (joinStatus) joinStatus.textContent = action.type;
+
+    if (action.type == "starting") {
+        widget.remove("join-dialog");
+        widget.remove("fade");
+        clearInterval(animationInterval);
+        scene = new THREE.Scene();
+        renderer.render(scene, camera);
+        startMulti(action.stage);
+    }
+    else if (action.type == "loaded") {
+        // unlock resource loader when peer finishes loading
+        resourceLoader.locked = false;
+    }
+    else if (action.type == "end") {
+        stageEndMulti();
+    }
+    else if (action.type == "restart") {
+        restart();
+    }
+    else if (action.type == "back") {
+        backMulti(true);
+    }
+    else if (action.type == "quit") {
+        quitMulti(true);
+    }
+}
+
+// To control the peer charcater according to data received
+function processGameData(data) {
+    if (!peerPlayer) return;
+    // Check if peer has won/lost
+    if (!peerEnd && (data.lost || data.win)) {
+        peerEnd = true;
+        // When both player finishes (win/lose)
+        if (loseInMult || winInMult) {
+            signal('{"action": {"type": "end"}}');
+            stageEndMulti();
+        }
+        return;
+    }
+    // Set the position
+    peerPlayer.position.set(data.position[0], data.position[1], data.position[2]);
+    // Set the facing direction
+    if (data.velocity[0]) peerPlayer.rotation.y = ((data.velocity[0] < 0.001) ? -1 : 1) * Math.PI / 2;
+    else if (data.velocity[2]) peerPlayer.rotation.y = ((data.velocity[2] < 0.001) ? 1 : 0) * Math.PI;
+    // to make sure the song is synchronized (unsafe)
+    let diff = resourceLoader.song.currentTime - data.time;
+    if (Math.abs(diff) > 0.2) {
+        if (diff > 0) resourceLoader.song.currentTime -= 0.1;
+    }
+    // Set the animation frame
+    let anim = peerPlayer.mixer.existingAction(peerPlayer.animations[0]);
+    if (anim) {
+        if (Math.abs(data.velocity[0]) < 0.0001 && Math.abs(data.velocity[2] < 0.0001)) {
+            anim.stop();
+        } 
+        else {
+            anim.play();
+            const delta = clock.getDelta();
+            peerPlayer.mixer.update(delta * c_fallSpeed / c_jumpInitVelocity);
+        }        
+    }
+    // update the count of missed notes
+    if (data.missed && data.missed > peerMissed) peerMissed = data.missed;
 }
