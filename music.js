@@ -74,7 +74,11 @@ function checkNextNote() {
 	if (notesContent[currentRow][currentCol] == '1') {
 		//var speed1s = (initX - trimPercentage(finalX)) / c_FPS; // exactly the distance moved for 1 second
 		//var speed = speed1s / screenTravelingTime;
-		pushJumpNote(noteTheme, resourceLoader.song.currentTime);
+		pushJumpNote('normal', noteTheme.normal, resourceLoader.song.currentTime);
+	} else if (notesContent[currentRow][currentCol] == '2') {
+		pushJumpNote('double', noteTheme.double, resourceLoader.song.currentTime);
+	} else if (notesContent[currentRow][currentCol] == '3') {
+		pushJumpNote('reverse', noteTheme.reverse, resourceLoader.song.currentTime);
 	}
 	currentCol++;
 	// Go to next row if reaches the end in the current row

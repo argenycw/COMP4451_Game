@@ -27,8 +27,20 @@
 		"color": "#ffffff"
 	},
 	"notes": {
-		"fillColor": "#a1a250",
-		"strokeColor": "#000000",
-		"radius": "3vh"
+		"normal": {
+			"fillColor": "#a1a250",
+			"strokeColor": "#000000",
+			"radius": "3vh"
+		},
+		"double": {
+			"fillColor": "#ffaaaa",
+			"strokeColor": "#000000",
+			"radius": "3vh"
+		},
+		"reverse": {
+			"fillColor": "#ff0000",
+			"strokeColor": "#000000",
+			"radius": "3vh"
+		}
 	}
 }

@@ -12,6 +12,8 @@
 //
 // # Constants
 const c_musicBarCoordinate = ["0", "0", "100%", "100%"];
+const c_notesCoordinate = ["150", "170", "0", "-30"];
+const c_noteAnimationFrame = 4;
 const c_musicBarDefaultBgColor = "#282828";
 const hitText = "JUMP";
 const c_defaultFinalX = 20;
@@ -221,8 +223,8 @@ function initMusicBar(theme) {
 // ==================================================================
 
 // Initialize the jump note outside the window and wait for update
-function pushJumpNote(theme, speed) {
-	var jumpNote = createFirework(theme, speed);
+function pushJumpNote(type, theme, speed) {
+	var jumpNote = createFirework(type, theme, speed);
 	svg.appendChild(jumpNote);
 	notesList.push(jumpNote);
 }
@@ -240,12 +242,17 @@ function createCircle(theme, speed) {
 	return jumpNote;
 }
 
-function createFirework(theme, speed) {
+function createFirework(type, theme, speed) {
 	var jumpNote = document.createElementNS(svgns, "svg");
 	var g = document.createElementNS(svgns, "g");
-	for (let i = 0; i < svg_firework.length; i++) {
-		var innerG = document.createElementNS(svgns, "g");
-		innerG.innerHTML = svg_firework[i];
+	for (let i = 0; i < c_noteAnimationFrame; i++) {
+		var innerG = document.createElementNS(svgns, "image");
+		// innerG.innerHTML = svg_firework[i];
+		innerG.setAttribute('height',c_notesCoordinate[0]);
+		innerG.setAttribute('width',c_notesCoordinate[1]);
+		innerG.setAttributeNS('http://www.w3.org/1999/xlink','href','images/firework_' + type + '_0' + (i+1) + '.png');
+		innerG.setAttribute('x',c_notesCoordinate[2]);
+		innerG.setAttribute('y',c_notesCoordinate[3]);
 		if (i > 0) innerG.style.display = "none";
 		else innerG.style.display = "block";
 		g.appendChild(innerG);
