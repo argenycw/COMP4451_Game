@@ -772,7 +772,7 @@ function movePlayer(dirX=0, dirZ=0) {
 	// Mark the player has left the platform (to avoid horizontal movement)
 	let currentPlatform = getMapElement(playerZ, playerX);
 	if (currentPlatform) currentPlatform.hasPlayer = false;
-	player.velocityY = c_jumpInitVelocity*range;
+	player.velocityY = c_jumpInitVelocity;
 
 	let dpx = (c_PlatformSize[0] + c_PlatformSep);
 	let dpz = (c_PlatformSize[2] + c_PlatformSep);
@@ -782,8 +782,8 @@ function movePlayer(dirX=0, dirZ=0) {
 		dpx = Math.abs(player.position.x - nextPlatform.position.x);
 		dpz = Math.abs(player.position.z - nextPlatform.position.z);
 	}
-	player.velocityX = dpx * dirX * reverse * (c_fallSpeed / (c_jumpInitVelocity * 2));
-	player.velocityZ = dpz * dirZ * reverse * (c_fallSpeed / (c_jumpInitVelocity * 2));
+	player.velocityX = range * dpx * dirX * reverse * (c_fallSpeed / (c_jumpInitVelocity * 2));
+	player.velocityZ = range * dpz * dirZ * reverse * (c_fallSpeed / (c_jumpInitVelocity * 2));
 	playerX += dirX*range*reverse;
 	playerZ += dirZ*range*reverse;
 	// Rotate the player to face at where it is jumping
