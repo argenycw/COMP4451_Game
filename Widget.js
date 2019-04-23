@@ -99,6 +99,27 @@ function Widget(x=0, y=0, width="100%", height="100%") {
 		return group;
 	}
 
+	this.createImage = function(source, x, y, width, height, classList=[], id="w-"+Object.keys(myself.widgets).length) {
+		var image = document.createElementNS(svgns, "image");
+		image.setAttribute("x", x);
+		image.setAttribute("y", y);
+		image.setAttribute("width", width);
+		image.setAttribute("height", height);
+		image.classList.add("unselectable");
+		for (var i = 0; i < classList.length; i++) {
+			image.classList.add(classList[i]);
+		}
+		image.setAttributeNS('http://www.w3.org/1999/xlink','href', source);
+		myself.widgets[id] = image;
+		return image;
+	}
+
+	this.showImage = function(source, x, y, width, height, classList=[], id="w-"+Object.keys(myself.widgets).length) {
+		var image = myself.createSimpleText(source, x, y, width, height, classList, id);
+		myself.screen.appendChild(image);
+		return image;
+	}
+
 	// Return an svg texts
 	this.createSimpleText = function(content, x, y, classList=[], size=0, id="w-"+Object.keys(myself.widgets).length) {
 		var text = document.createElementNS(svgns, "text");
