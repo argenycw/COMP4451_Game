@@ -271,6 +271,7 @@ function createFirework(type, theme, speed) {
 	//jumpNote.setAttribute("fill", theme.fillColor);
 	//jumpNote.setAttribute("stroke", theme.strokeColor);
 	jumpNote.setAttribute("speed", speed);
+	jumpNote.setAttribute("type", type);
 	return jumpNote;
 }
 

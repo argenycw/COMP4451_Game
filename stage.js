@@ -758,16 +758,21 @@ function movePlayer(dirX=0, dirZ=0) {
 	if (multiplaying && (loseInMult || winInMult)) return;
 	// Unable to jump when there is no notes
 	if (!jumpable()) return;
+
+	// Check the type of note for calculation of player movement
+	let range = (notesList[0].getAttribute("type") == 'double')? 2 : 1;
+	let reverse = (notesList[0].getAttribute("type") == 'reverse')? -1 : 1;
+
 	if (player.velocityY != 0) {
 		// If the player almost lands, save the next action to perform immediately after landing
 		if (player.velocityY < c_jumpInitVelocity)
-			nextMovement = [dirX, dirZ];
+			nextMovement = [dirX*range*reverse, dirZ*range*reverse];
 		return;
 	}
 	// Mark the player has left the platform (to avoid horizontal movement)
 	let currentPlatform = getMapElement(playerZ, playerX);
 	if (currentPlatform) currentPlatform.hasPlayer = false;
-	player.velocityY = c_jumpInitVelocity;
+	player.velocityY = c_jumpInitVelocity*range;
 
 	let dpx = (c_PlatformSize[0] + c_PlatformSep);
 	let dpz = (c_PlatformSize[2] + c_PlatformSep);
@@ -777,13 +782,13 @@ function movePlayer(dirX=0, dirZ=0) {
 		dpx = Math.abs(player.position.x - nextPlatform.position.x);
 		dpz = Math.abs(player.position.z - nextPlatform.position.z);
 	}
-	player.velocityX = dpx * dirX * (c_fallSpeed / (c_jumpInitVelocity * 2));
-	player.velocityZ = dpz * dirZ * (c_fallSpeed / (c_jumpInitVelocity * 2));
-	playerX += dirX;
-	playerZ += dirZ;
+	player.velocityX = dpx * dirX * reverse * (c_fallSpeed / (c_jumpInitVelocity * 2));
+	player.velocityZ = dpz * dirZ * reverse * (c_fallSpeed / (c_jumpInitVelocity * 2));
+	playerX += dirX*range*reverse;
+	playerZ += dirZ*range*reverse;
 	// Rotate the player to face at where it is jumping
-	if (dirX) player.rotation.y = dirX * Math.PI / 2;
-	else if (dirZ) player.rotation.y = (dirZ == 1) ? 0 : Math.PI;
+	if (dirX*reverse) player.rotation.y = dirX*reverse * Math.PI / 2;
+	else if (dirZ*reverse) player.rotation.y = (dirZ*reverse == 1) ? 0 : Math.PI;
 	playJumpSound();
 	successJumpClearup();
 }
