@@ -18,6 +18,9 @@ var peerEnd = false;
 var playMissed = 0;
 var peerMissed = 0;
 
+// avoid incoherence bounce due to network latency
+var collision = false;
+
 // Create the Peer object for our end of the connection.
 function initialize(peerId=null) {
     // Create own peer object with connection to shared PeerJS server
@@ -187,9 +190,11 @@ function sendGameData() {
             "position": [player.position.x, player.position.y, player.position.z],
             "velocity": [player.velocityX, player.velocityY, player.velocityZ],
             "time": resourceLoader.song.currentTime,
-            "missed": playMissed
+            "missed": playMissed,
+            "collision": collision
         }
     };
+    collision = false; // reset the flag of collision detech
     if (loseInMult) {
         data.game.lost = loseInMult;
     }
@@ -256,16 +261,18 @@ function processGameData(data) {
         }
         return;
     }
+    // Set the collision flag
+    collision = data.collision;
     // Set the position
     peerPlayer.position.set(data.position[0], data.position[1], data.position[2]);
     // Set the facing direction
     if (data.velocity[0]) peerPlayer.rotation.y = ((data.velocity[0] < 0.001) ? -1 : 1) * Math.PI / 2;
     else if (data.velocity[2]) peerPlayer.rotation.y = ((data.velocity[2] < 0.001) ? 1 : 0) * Math.PI;
     // to make sure the song is synchronized (unsafe)
-    let diff = resourceLoader.song.currentTime - data.time;
-    if (Math.abs(diff) > 0.2) {
-        if (diff > 0) resourceLoader.song.currentTime -= 0.1;
-    }
+    //let diff = resourceLoader.song.currentTime - data.time;
+    // if (Math.abs(diff) > 0.2) {
+    //     if (diff > 0) resourceLoader.song.currentTime -= 0.1;
+    // }
     // Set the animation frame
     let anim = peerPlayer.mixer.existingAction(peerPlayer.animations[0]);
     if (anim) {
@@ -280,4 +287,54 @@ function processGameData(data) {
     }
     // update the count of missed notes
     if (data.missed && data.missed > peerMissed) peerMissed = data.missed;
+    solveCollision(data);
+}
+
+// When peerPlayer and player collide, solve the collision and bounce off.
+function solveCollision(data) {
+
+    // check collision
+    playerBoundingBox = new THREE.Box3().setFromObject(player);
+    peerPlayerBoundingBox = new THREE.Box3().setFromObject(peerPlayer);
+    let collisionHere = playerBoundingBox.intersectsBox(peerPlayerBoundingBox);
+
+    // player not moving
+    if (collisionHere && player.velocityY == 0) {
+        if(collisionHere) console.log("collision detected");
+        // peer collide horizontally
+        if(Math.abs(data.velocity[0]) > 0.0001) {
+            // from right
+            if(player.position.x < peerPlayer.position.x)
+                collidePlayer(directionX.RIGHT, directionZ.NULL);
+            // from left
+            else 
+                collidePlayer(directionX.LEFT, directionZ.NULL);
+        // peer collide vertically
+        } else if (Math.abs(data.velocity[2]) > 0.0001) {
+            // from bottom
+            if(player.position.z > peerPlayer.position.z) 
+                collidePlayer(directionX.NULL, directionZ.UP);
+            // from above
+            else 
+                collidePlayer(directionX.NULL, directionZ.DOWN);
+        }
+    }
+    //jumping
+        else if(collisionHere && player.velocityY != 0) {
+        //pull back
+        var size = new THREE.Vector3( 0, 0, 0);
+        peerPlayerBoundingBox.getSize(size);
+        if(playerX > prevPlayerX) 
+            player.position.x = peerPlayer.position.x - size.x;
+        else if(playerX < prevPlayerX) 
+            player.position.x = peerPlayer.position.x + size.x;
+        if(playerZ > prevPlayerZ) 
+            player.position.z = peerPlayer.position.z - size.z;
+        else if(playerZ < prevPlayerZ) 
+            player.position.z = peerPlayer.position.z + size.z;
+        playerX = prevPlayerX;
+        playerZ = prevPlayerZ;
+        player.velocityX = -player.velocityX;
+        player.velocityZ = -player.velocityZ;
+    }
 }

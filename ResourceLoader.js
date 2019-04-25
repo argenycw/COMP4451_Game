@@ -149,7 +149,7 @@ function ResourceLoader(mapFile="", themeFile="", stageFile="", mapFolder="", th
 
 	this.loadCharacter2 = function() {
 		var gltfLoader = new THREE.GLTFLoader();
-		gltfLoader.load('models/stork.glb', function (gltf) {
+		gltfLoader.load('models/dog2.glb', function (gltf) {
 			// ensure every mesh of the model will cast shadow
 			gltf.scene.traverse(node => {if (node instanceof THREE.Mesh) {node.castShadow = true;}});
 			loader.player2 = gltf;

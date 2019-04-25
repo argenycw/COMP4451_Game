@@ -44,6 +44,7 @@ var audioListener = null;
 var stageLevel;
 var player = null;
 var playerX = 0, playerZ = 0;		// save the x and z position in currentMap
+var prevPlayerX = -1 , prevPlayerZ = -1; // save the previous x and z position in currentMap
 var peerPlayer = null;
 var peerX = 0, peerZ = 0;			// save the x and z position in currentMap
 var currentMap = [];
@@ -73,6 +74,7 @@ function animate() {
 	moveNotes();
 	performFadingAnimation();
 	if (multiplaying) {
+
 		if (alt) {
 			sendGameData();
 		}
@@ -677,6 +679,9 @@ function playerFall() {
 			else stageFail();
 			return;
 		}
+		// reset prevPlayer position
+		prevPlayerX = -1;
+		prevPlayerZ = -1;
 		// Play the sound effect of landing
 		playLandSound();
 		// Stop character animation, then activate (if exist)
@@ -760,8 +765,13 @@ function movePlayer(dirX=0, dirZ=0) {
 	if (!jumpable()) return;
 
 	// Check the type of note for calculation of player movement
-	let range = (notesList[0].getAttribute("type") == 'double')? 2 : 1;
-	let reverse = (notesList[0].getAttribute("type") == 'reverse')? -1 : 1;
+
+	let range = 1;
+	let reverse = 1;
+	if (notesList[0]) {
+		range = (notesList[0].getAttribute("type") == 'double')? 2 : 1;
+		reverse = (notesList[0].getAttribute("type") == 'reverse')? -1 : 1;
+	}
 
 	if (player.velocityY != 0) {
 		// If the player almost lands, save the next action to perform immediately after landing
@@ -784,6 +794,8 @@ function movePlayer(dirX=0, dirZ=0) {
 	}
 	player.velocityX = range * dpx * dirX * reverse * (c_fallSpeed / (c_jumpInitVelocity * 2));
 	player.velocityZ = range * dpz * dirZ * reverse * (c_fallSpeed / (c_jumpInitVelocity * 2));
+	prevPlayerX = playerX;
+	prevPlayerZ = playerZ;
 	playerX += dirX*range*reverse;
 	playerZ += dirZ*range*reverse;
 	// Rotate the player to face at where it is jumping
@@ -791,6 +803,45 @@ function movePlayer(dirX=0, dirZ=0) {
 	else if (dirZ*reverse) player.rotation.y = (dirZ*reverse == 1) ? 0 : Math.PI;
 	playJumpSound();
 	successJumpClearup();
+}
+
+function collidePlayer(dirX=0, dirZ=0) {
+	if (!player) return;
+	if (multiplaying && (loseInMult || winInMult)) return;
+	// Unable to jump when there is no notes
+	if (!jumpable()) return;
+
+	// Check the type of note for calculation of player movement
+
+	let range = 1;
+	let reverse = 1;
+
+	if (player.velocityY != 0) {
+		// If the player almost lands, save the next action to perform immediately after landing
+		if (player.velocityY < c_jumpInitVelocity)
+			nextMovement = [dirX*range*reverse, dirZ*range*reverse];
+		return;
+	}
+	// Mark the player has left the platform (to avoid horizontal movement)
+	let currentPlatform = getMapElement(playerZ, playerX);
+	if (currentPlatform) currentPlatform.hasPlayer = false;
+	player.velocityY = c_jumpInitVelocity;
+
+	let dpx = (c_PlatformSize[0] + c_PlatformSep);
+	let dpz = (c_PlatformSize[2] + c_PlatformSep);
+	// try to "fix" the position by jumping towards the center of the platform
+	let nextPlatform = getMapElement(playerZ + dirZ, playerX + dirX, false);
+	if (nextPlatform && !nextPlatform.isSign) {
+		dpx = Math.abs(player.position.x - nextPlatform.position.x);
+		dpz = Math.abs(player.position.z - nextPlatform.position.z);
+	}
+	player.velocityX = range * dpx * dirX * reverse * (c_fallSpeed / (c_jumpInitVelocity * 2));
+	player.velocityZ = range * dpz * dirZ * reverse * (c_fallSpeed / (c_jumpInitVelocity * 2));
+	prevPlayerX = playerX;
+	prevPlayerZ = playerZ;
+	playerX += dirX*range*reverse;
+	playerZ += dirZ*range*reverse;
+	playJumpSound();
 }
 
 function playJumpSound() {
