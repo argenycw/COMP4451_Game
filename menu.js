@@ -17,7 +17,7 @@ const multiStage = [
 ]
 // # Global objects and variables
 var m_resourceLoader = null;
-var currentStage = 3;
+var currentStage = 6;
 var angle = 1;
 var center = 0;
 var scene = null;
@@ -263,10 +263,11 @@ function showHowToPlay() {
 	var note_normal_image = widget.createImage("images/firework_normal_01.png", "15%", "27%", "20%", "10%");
 	var note_double_image = widget.createImage("images/firework_double_01.png", "40%", "27%", "20%", "10%");
 	var note_reverse_image = widget.createImage("images/firework_reverse_01.png", "65%", "27%", "20%", "10%");
-	var text1 = widget.createSimpleText("W/A/S/D or up/down/left/right arrows to move your character.", "50%", "45%", ["cubic"], "1.2vw");
-	var text2 = widget.createSimpleText("Blue note: the normal note, you can jump to another platform", "50%", "55%", ["cubic"], "1.2vw");
-	var text3 = widget.createSimpleText("Green note: the double note, you will jump 2 platforms at once.", "50%", "65%", ["cubic"], "1.2vw");
-	var text4 = widget.createSimpleText("Red note: the reverse note, you will jump in a reverse direction.", "50%", "75%", ["cubic"], "1.2vw");
+	var text1 = widget.createSimpleText("W/A/S/D or up/down/left/right arrows to move your character.", "10%", "45%", [], "1.6vw");
+	var text2 = widget.createSimpleText("Blue note: the normal note, you can jump to another platform.", "10%", "50%", [], "1.6vw");
+	var text3 = widget.createSimpleText("Green note: the double note, you will jump 2 platforms at once.", "10%", "55%", [], "1.6vw");
+	var text4 = widget.createSimpleText("Red note: the reverse note, you will jump in a reverse direction.", "10%", "60%", [], "1.6vw");
+	var text5 = widget.createSimpleText("Find and jump to the destination platform to win the game!", "10%", "70%", [], "1.6vw");
 	var backCallBack = function() {
 		widget.remove(dialog);
 		showMainDialog();
@@ -281,6 +282,7 @@ function showHowToPlay() {
 	dialog.appendChild(text2);
 	dialog.appendChild(text3);
 	dialog.appendChild(text4);
+	dialog.appendChild(text5);
 }
 
 function showSetting() {
