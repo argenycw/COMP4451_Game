@@ -814,8 +814,8 @@ function movePlayer(dirX=0, dirZ=0) {
 	let range = 1;
 	let reverse = 1;
 	let type = 0;
-	let t = notesList[0].getAttribute("type");
 	if (notesList[0]) {
+		let t = notesList[0].getAttribute("type");
 		if (t == 'double') {
 			range = 2;
 			type = 1;
@@ -840,13 +840,7 @@ function movePlayer(dirX=0, dirZ=0) {
 	let dpx = (c_PlatformSize[0] + c_PlatformSep);
 	let dpz = (c_PlatformSize[2] + c_PlatformSep);
 	// try to "fix" the position by jumping towards the center of the platform
-	let nextPlatform;
-	if (t == "double") {
-		nextPlatform = getMapElement(playerZ + dirZ * range, playerX + dirX * range, false);		
-	}
-	else {
-		nextPlatform = getMapElement(playerZ + dirZ, playerX + dirX, false);		
-	}
+	let nextPlatform = getMapElement(playerZ + dirZ, playerX + dirX, false);		
 	if (nextPlatform && !nextPlatform.isSign) {
 		dpx = Math.abs(player.position.x - nextPlatform.position.x);
 		dpz = Math.abs(player.position.z - nextPlatform.position.z);
