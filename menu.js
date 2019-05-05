@@ -13,7 +13,9 @@ const c_maxStages = 20;
 const gridPerRow = 6;
 const multiStage = [
 	{stage: 1, name: "Tutorial"},
-	{stage: 2, name: "In Progress..."}
+	{stage: 2, name: "Morning"},
+	{stage: 3, name: "Noon"},
+	{stage: 4, name: "Night"}
 ]
 // # Global objects and variables
 var m_resourceLoader = null;
