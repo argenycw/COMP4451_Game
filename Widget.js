@@ -144,12 +144,21 @@ function Widget(x=0, y=0, width="100%", height="100%") {
 	}
 
 	// Blink the text. Content should be an array of text to blink
-	this.blinkSimpleText = function(content, x, y, classList=[], size=0, time=1000) {
+	this.blinkSimpleText = function(content, x, y, classList=[], size=0, onComplete=null, time=1000) {
 		for (var i = 0; i < content.length; i++) {
 			let textContent = content[i];
 			var id = "w_" + i;
-			setTimeout(function() {myself.showSimpleText(textContent, x, y, classList, size, id);}, time * (i+1));
-			setTimeout(function() {myself.remove(id);}, time * (i+2));
+			let playSound = (i == content.length - 1) ? playStartSound : playCountdownSound;
+			setTimeout(function() {
+				playSound();
+				myself.showSimpleText(textContent, x, y, classList, size, id);
+			}, time * (i+1));
+			if (i == content.length - 1 && onComplete) {
+				setTimeout(function() {myself.remove(id); onComplete()}, time * (i+2));
+			}
+			else {
+				setTimeout(function() {myself.remove(id);}, time * (i+2));				
+			}
 		}
 		// return the time needed to wait for
 		return (content.length + 1) * time;

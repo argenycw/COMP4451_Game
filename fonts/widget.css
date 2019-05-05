@@ -3,8 +3,18 @@
     src: url('./RequiresMoonshine.otf');
 }
 
+@font-face {
+    font-family: 'Gamlangdee';
+    src: url('./Gamlangdee.ttf');
+}
+
 .cubic {
 	font-family: "Requires Moonshine";
+	text-anchor: middle;
+}
+
+.sub-cubic {
+	font-family: "Gamlangdee";
 	text-anchor: middle;
 }
 
@@ -68,6 +78,10 @@
 .menu-text-input::-moz-selection { color: white; }
 
 /* Green series: for winning dialog */
+.victory-green {
+	fill: #209030;
+}
+
 .green-dialog {
 	stroke: #209030;
 	stroke-width: 0.5vw;

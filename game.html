@@ -48,9 +48,9 @@
 </head>
 <body>
 	<script>
-		const DEBUG = false;
+		const DEBUG = true;
 		const stageBeginMsg = ["3", "2", "1", "Stage Begin"];
-		const soundList = ["jump01.wav", "jump02.wav", "land.wav", "cursor.ogg", "collide.wav", "fall.wav"];
+		const soundList = ["jump01.wav", "jump02.wav", "land.wav", "cursor.ogg", "collide.wav", "fall.wav", "countdown.mp3", "start.mp3"];
 		var g_resourceLoader = null;
 		var resourceLoader = null;
 		var widget = new Widget();
@@ -62,8 +62,10 @@
 		window.addEventListener('resize', function() {
 			resizeExistingNotes();
 			renderer.setSize(window.innerWidth, window.innerHeight);
-			camera.aspect = window.innerWidth / window.innerHeight;
-			camera.updateProjectionMatrix();
+			if (camera) {
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+			}
 		}, false);
 
 		function start(stage) {

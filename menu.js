@@ -17,7 +17,7 @@ const multiStage = [
 ]
 // # Global objects and variables
 var m_resourceLoader = null;
-var currentStage = 3;
+var currentStage = 8;
 var angle = 1;
 var center = 0;
 var scene = null;
@@ -82,7 +82,7 @@ function showMainDialog() {
 	}
 
 	var title = widget.createSimpleText("Rhythm & Jump", "50%", "20%", ["cubic", "brown-rect-text"], "5vw");
-	var startSingleBtn = widget.createRectButton("Story Mode", "10%", "35%", "80%", "15%", ["brown-rect-btn", "cubic"], storyModeCallback);
+	var startSingleBtn = widget.createRectButton("Single Player", "10%", "35%", "80%", "15%", ["brown-rect-btn", "cubic"], storyModeCallback);
 	var startMultiBtn = widget.createRectButton("Multiplayer", "10%", "55%", "80%", "15%", ["brown-rect-btn", "cubic"], multiplayerModeCallback);
 	var howToPlayBtn = widget.createRectButton("How To Play", "10%", "75%", "80%", "15%", ["brown-rect-btn", "cubic"], howToPlayCallback);
 	var setting = widget.createDefinedSVG("85%", "25%", "#svg-setting", ["menu-round-btn"], settingCallback, "setting");
@@ -260,13 +260,13 @@ function multiplayer() {
 function showHowToPlay() {
 	var dialog = widget.showDialog("25%", "10%", "50%", "80%", ["brown-dialog"], "How To Play");
 	var title = widget.createSimpleText("How To Play", "50%", "20%", ["cubic", "brown-rect-text"], "5vw");
-	var note_normal_image = widget.createImage("images/firework_normal_01.png", "15%", "27%", "20%", "10%");
-	var note_double_image = widget.createImage("images/firework_double_01.png", "40%", "27%", "20%", "10%");
-	var note_reverse_image = widget.createImage("images/firework_reverse_01.png", "65%", "27%", "20%", "10%");
-	var text1 = widget.createSimpleText("W/A/S/D or up/down/left/right arrows to move your character.", "50%", "45%", ["cubic"], "1.2vw");
-	var text2 = widget.createSimpleText("Blue note: the normal note, you can jump to another platform", "50%", "55%", ["cubic"], "1.2vw");
-	var text3 = widget.createSimpleText("Green note: the double note, you will jump 2 platforms at once.", "50%", "65%", ["cubic"], "1.2vw");
-	var text4 = widget.createSimpleText("Red note: the reverse note, you will jump in a reverse direction.", "50%", "75%", ["cubic"], "1.2vw");
+	var text1 = widget.createSimpleText("W/A/S/D or up/down/left/right arrows to move your character.", "50%", "30%", ["sub-cubic"], "1.4vw");
+	var note_normal_image = widget.createImage("images/firework_normal_01.png", "8%", "40%", "15%", "7.5%");
+	var note_double_image = widget.createImage("images/firework_double_01.png", "8%", "55%", "15%", "7.5%");
+	var note_reverse_image = widget.createImage("images/firework_reverse_01.png", "7%", "70%", "15%", "7.5%");
+	var text2 = widget.createSimpleText("Normal note, you can jump to another platform", "58%", "45%", ["sub-cubic"], "1.4vw");
+	var text3 = widget.createSimpleText("Double note, you will jump 2 platforms at once.", "58%", "60%", ["sub-cubic"], "1.4vw");
+	var text4 = widget.createSimpleText("Reverse note, you will jump backward.", "52%", "75%", ["sub-cubic"], "1.4vw");
 	var backCallBack = function() {
 		widget.remove(dialog);
 		showMainDialog();
@@ -290,8 +290,10 @@ function showSetting() {
 		widget.remove(dialog);
 		showMainDialog();
 	}
+	var text = widget.createSimpleText("Nothing to set in this version...", "50%", "50%", ["sub-cubic"], "1.8vw");
 	var backBtn = widget.createRectButton("Back", "75%", "85%", "15%", "8%", ["cubic", "brown-rect-btn"], backCallBack);
 	dialog.appendChild(backBtn);
+	dialog.appendChild(text);
 	dialog.appendChild(title);
 }
 

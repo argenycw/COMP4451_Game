@@ -53,7 +53,9 @@ var nextMovement = null;			// To make a smooth control, save the next movement t
 var fallingY = -5;					// After fallingY, "fall.wav" will be played
 var losingY = -100;					// The minimum y the player can reach not to lose
 
+var colliding = false;
 var alt = false;
+
 // ==================================================================
 function animate() {
 	// requestAnimationFrame(animate);
@@ -80,6 +82,7 @@ function animate() {
 		}
 		alt = !alt;
 	}
+
 	renderer.render(scene, camera);
 }
 
@@ -104,7 +107,7 @@ function stageInit(sceneObject) {
 	var fogAttr = sceneObject.fog;
 	if (fogAttr) {
 		scene.fog = new THREE.Fog(fogAttr.color, fogAttr.near, fogAttr.far);
-		losingY = -fogAttr.far;
+		losingY = -100;
 	}
 
 	// AudioListener for audio
@@ -122,6 +125,7 @@ function stageInit(sceneObject) {
 	document.addEventListener("keydown", onKeyDown);
 	return;
 }
+
 
 function getMapElement(z, x, readSign=true) {
 	if (currentMap == null || currentMap.length == 0) return null;
@@ -276,6 +280,17 @@ function buildPlatforms(stage, platformAttr) {
 				else platform = renderPlatform(platformAttr.normal);
 				platform.type = platformTypes.DESTINATION;
 				platform.position.set(j * (c_PlatformSize[0] + c_PlatformSep), 0, i * (c_PlatformSize[2] + c_PlatformSep));
+				// use sprite to make the desination "glow"
+				var spriteMaterial = new THREE.SpriteMaterial({ 
+					map: new THREE.ImageUtils.loadTexture('images/glow.png'), 
+					color: 0xffff00, 
+					transparent: false, 
+					blending: THREE.AdditiveBlending
+				});
+				var sprite = new THREE.Sprite(spriteMaterial);
+				sprite.scale.set(40, 40, 1);
+				sprite.position.set(j * (c_PlatformSize[0] + c_PlatformSep), c_charDefaultPosY * 2, i * (c_PlatformSize[2] + c_PlatformSep));
+				scene.add(sprite);
 				scene.add(platform);
 				mapRow.push(platform);
 				break;
@@ -396,12 +411,14 @@ function buildPlatforms(stage, platformAttr) {
 				platform.type = platformTypes.ZTRACK_D;	
 				platform.position = new THREE.Vector3(j * (c_PlatformSize[0] + c_PlatformSep), 0, i * (c_PlatformSize[2] + c_PlatformSep));
 				mapRow.push(platform);
+				break;
 			case '^': // ZTRACK of moving platforms
 				var platform = {};
 				platform.isSign = true;
 				platform.type = platformTypes.ZTRACK_U;	
 				platform.position = new THREE.Vector3(j * (c_PlatformSize[0] + c_PlatformSep), 0, i * (c_PlatformSize[2] + c_PlatformSep));
 				mapRow.push(platform);
+				break;
 			default:
 				mapRow.push(null);
 				break;
@@ -428,7 +445,7 @@ function stageOnSuccessLoad(content) {
 }
 
 // This function pauses/resumes everything that refreshes in the game
-function gamePauseToggle() {
+function gamePauseToggle(mute=true) {
 	// Pause
 	if (!paused) {
 		// Set the pause flag
@@ -441,7 +458,8 @@ function gamePauseToggle() {
 		if (pauser) {
 			pauser.setAttribute("href", "#svg-play");
 		}
-		resourceLoader.song.pause();
+		if (mute) resourceLoader.song.pause();
+		else resourceLoader.song.volume = 0.4;
 	}
 	// Resume
 	else {
@@ -459,7 +477,8 @@ function gamePauseToggle() {
 }
 
 // callback function for all backButton in stage
-var backCallBack = function () {
+function backCallBack() {
+	resourceLoader.song.pause();
 	document.removeEventListener("keydown", onKeyDown);
 	scene = new THREE.Scene();
 	renderer.render(scene, camera);
@@ -467,6 +486,17 @@ var backCallBack = function () {
 	musicbar.parentNode.removeChild(musicbar);
 	widget.removeAll();
 	mainMenu();
+}
+
+function nextStageCallback() {
+	resourceLoader.song.pause();
+	document.removeEventListener("keydown", onKeyDown);
+	scene = new THREE.Scene();
+	renderer.render(scene, camera);
+	var musicbar = svg; // svg in musicbar.js
+	musicbar.parentNode.removeChild(musicbar);
+	widget.removeAll();
+	start(stageLevel + 1);
 }
 
 function backMulti(arg=false) {
@@ -495,6 +525,7 @@ function quitMulti(disconnect=false) {
 
 // callback function for restartBtn
 var restart = function() {
+	resourceLoader.song.pause();
 	document.removeEventListener("keydown", onKeyDown);
 	scene = new THREE.Scene();
 	renderer.render(scene, camera);
@@ -508,7 +539,7 @@ var restart = function() {
 // When the player wins the currentStage
 function stageClear() {
 	// stop the game
-	if (!paused) gamePauseToggle();
+	if (!paused) gamePauseToggle(false);
 	stageEnd();
 	// Fade out background
 	widget.fadeScreenWhite(5000);
@@ -516,10 +547,21 @@ function stageClear() {
 
 	var dialog = widget.showDialog("25%", "25%", "50%", "50%", ["green-dialog"], "clearing-dialog");
 	var clearMsg = widget.createSimpleText("Stage Clear", "50%", "30%", ["cubic", "green-rect-text"], "5vw");
-	var nextBtn = widget.createRectButton("Next Level", "30%", "45%", "40%", "20%", ["green-rect-btn", "cubic"]);
+	// only show the next button if this is not the last stage
+	if (stageLevel + 1 < currentStage) {
+		var nextBtn = widget.createRectButton("Next Level", "30%", "45%", "40%", "20%", ["green-rect-btn", "cubic"], nextStageCallback);
+		dialog.appendChild(nextBtn);
+	} 
+	else {
+		var text = "This is the last stage of current version.";
+		var text2 = "Thank you for playing.";
+		var msg = widget.createSimpleText(text, "50%", "50%", ["sub-cubic", "victory-green"], "1.8vw");
+		var tqmsg = widget.createSimpleText(text2, "50%", "60%", ["sub-cubic", "victory-green"], "1.8vw");
+		dialog.appendChild(msg);
+		dialog.appendChild(tqmsg);
+	}
 	var backBtn = widget.createRectButton("Back to Menu", "30%", "70%", "40%", "20%", ["green-rect-btn", "cubic"], backCallBack);
 	dialog.appendChild(clearMsg);
-	dialog.appendChild(nextBtn);
 	dialog.appendChild(backBtn);
 }
 
@@ -535,7 +577,7 @@ function stageClearMulti() {
 // When the player loses the currentStage for any reason
 function stageFail() {
 	// stop the game
-	if (!paused) gamePauseToggle();
+	if (!paused) gamePauseToggle(false);
 	stageEnd();
 	// Fade out background
 	widget.fadeScreenWhite(0.8, 5000);
@@ -679,17 +721,17 @@ function playerFall() {
 			else stageFail();
 			return;
 		}
-		// reset prevPlayer position
-		prevPlayerX = -1;
-		prevPlayerZ = -1;
 		// Play the sound effect of landing
 		playLandSound();
+		colliding = false;
 		// Stop character animation, then activate (if exist)
 		if (player.mixer.existingAction(player.animations[0])) player.mixer.existingAction(player.animations[0]).stop().play();
 		// Cancel all speeds
 		player.velocityX = 0;
 		player.velocityY = 0;
 		player.velocityZ = 0;
+		// forcely raise the player up to the stage
+		if (player.position.y < c_charDefaultPosY) player.position.y = c_charDefaultPosY;
 		if (platform.type == platformTypes.HORIZONTAL) {
 			player.status = playerStatus.HORIZONTAL_PLATFORM;
 			platform.hasPlayer = true;
@@ -762,15 +804,26 @@ function movePlayer(dirX=0, dirZ=0) {
 	if (!player) return;
 	if (multiplaying && (loseInMult || winInMult)) return;
 	// Unable to jump when there is no notes
-	if (!jumpable()) return;
+	if (!jumpable()) {
+		// penalty: flash a color illustrating it is wrong
+		failedJumpClearup();
+		return;
+	}
 
 	// Check the type of note for calculation of player movement
-
 	let range = 1;
 	let reverse = 1;
+	let type = 0;
+	let t = notesList[0].getAttribute("type");
 	if (notesList[0]) {
-		range = (notesList[0].getAttribute("type") == 'double')? 2 : 1;
-		reverse = (notesList[0].getAttribute("type") == 'reverse')? -1 : 1;
+		if (t == 'double') {
+			range = 2;
+			type = 1;
+		}
+		else if (t == 'reverse') {
+			reverse = -1;
+			type = 2;
+		}
 	}
 
 	if (player.velocityY != 0) {
@@ -787,7 +840,13 @@ function movePlayer(dirX=0, dirZ=0) {
 	let dpx = (c_PlatformSize[0] + c_PlatformSep);
 	let dpz = (c_PlatformSize[2] + c_PlatformSep);
 	// try to "fix" the position by jumping towards the center of the platform
-	let nextPlatform = getMapElement(playerZ + dirZ, playerX + dirX, false);
+	let nextPlatform;
+	if (t == "double") {
+		nextPlatform = getMapElement(playerZ + dirZ * range, playerX + dirX * range, false);		
+	}
+	else {
+		nextPlatform = getMapElement(playerZ + dirZ, playerX + dirX, false);		
+	}
 	if (nextPlatform && !nextPlatform.isSign) {
 		dpx = Math.abs(player.position.x - nextPlatform.position.x);
 		dpz = Math.abs(player.position.z - nextPlatform.position.z);
@@ -796,15 +855,17 @@ function movePlayer(dirX=0, dirZ=0) {
 	player.velocityZ = range * dpz * dirZ * reverse * (c_fallSpeed / (c_jumpInitVelocity * 2));
 	prevPlayerX = playerX;
 	prevPlayerZ = playerZ;
-	playerX += dirX*range*reverse;
-	playerZ += dirZ*range*reverse;
+	playerX += dirX * range * reverse;
+	playerZ += dirZ * range * reverse;
 	// Rotate the player to face at where it is jumping
-	if (dirX*reverse) player.rotation.y = dirX*reverse * Math.PI / 2;
-	else if (dirZ*reverse) player.rotation.y = (dirZ*reverse == 1) ? 0 : Math.PI;
+	// if reverse: jump backward :)
+	if (dirX) player.rotation.y = dirX * Math.PI / 2;
+	else if (dirZ) player.rotation.y = ((dirZ == 1) ? 0 : Math.PI);
 	playJumpSound();
-	successJumpClearup();
+	successJumpClearup(type);
 }
 
+// Only happen in Multiplayer mode
 function collidePlayer(dirX=0, dirZ=0) {
 	if (!player) return;
 	if (multiplaying && (loseInMult || winInMult)) return;
@@ -812,20 +873,13 @@ function collidePlayer(dirX=0, dirZ=0) {
 	if (!jumpable()) return;
 
 	// Check the type of note for calculation of player movement
-
 	let range = 1;
 	let reverse = 1;
 
-	if (player.velocityY != 0) {
-		// If the player almost lands, save the next action to perform immediately after landing
-		if (player.velocityY < c_jumpInitVelocity)
-			nextMovement = [dirX*range*reverse, dirZ*range*reverse];
-		return;
-	}
 	// Mark the player has left the platform (to avoid horizontal movement)
 	let currentPlatform = getMapElement(playerZ, playerX);
 	if (currentPlatform) currentPlatform.hasPlayer = false;
-	player.velocityY = c_jumpInitVelocity;
+	// player.velocityY = c_jumpInitVelocity;
 
 	let dpx = (c_PlatformSize[0] + c_PlatformSep);
 	let dpz = (c_PlatformSize[2] + c_PlatformSep);
@@ -842,6 +896,19 @@ function collidePlayer(dirX=0, dirZ=0) {
 	playerX += dirX*range*reverse;
 	playerZ += dirZ*range*reverse;
 	playJumpSound();
+}
+
+
+// Functions of sound playing
+
+function playStartSound() {
+	g_resourceLoader.soundEffects[7].currentTime = 0;
+	g_resourceLoader.soundEffects[7].play();
+}
+
+function playCountdownSound() {
+	g_resourceLoader.soundEffects[6].currentTime = 0;
+	g_resourceLoader.soundEffects[6].play();
 }
 
 function playJumpSound() {

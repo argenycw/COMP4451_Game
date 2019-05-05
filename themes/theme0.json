@@ -11,8 +11,11 @@
 	},
 	"flashArea": {
 		"width": "20%",
-		"color": "#0030c0",
-		"fade": 1000
+    "color": "#0030c0",
+    "double": "#30c030",
+    "reverse": "#f08030",
+    "wrong": "#c03000",
+	"fade": 1000
 	},
 	"explosion": {
 		"top": "76%",
