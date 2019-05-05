@@ -17,7 +17,7 @@ const multiStage = [
 ]
 // # Global objects and variables
 var m_resourceLoader = null;
-var currentStage = 6;
+var currentStage = 7;
 var angle = 1;
 var center = 0;
 var scene = null;

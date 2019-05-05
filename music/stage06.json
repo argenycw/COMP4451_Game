@@ -1,14 +1,14 @@
 {
-	"name": "Megalovania",
+	"name": "Spider Dnace",
 	"source": "Undertale",
 	"reference" : "https://www.youtube.com/watch?v=E0993FmdoNI",
 	"image": "images/undertale.jpg",
 	"imageWidth": 250,
 	"imageHeight": 250,
-	"song": "undertale_megalovania.mp3",
+	"song": "undertale_spiderDance.mp3",
 	"timeTravel": 3,
 	"wait": 0,
-	"period": 2000,
+	"period": 2086,
 	"content": [
 		[1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 1, 0],
 		[1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 1, 0],

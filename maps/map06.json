@@ -16,21 +16,21 @@
 			"color": "#606060"
 		},
 		"sunlight": {
-			"color": "#ffffaa",
+			"color": "#ff65ff",
 			"position": [100, 80, 0]
 		}
 	},
 	"platform": {
 		"normal": {
-			"edgeRadius": 1.2,
+			"edgeRadius": 5,
 			"texture": {
-				"top": "textures/ground_purple.png",
+				"top": "textures/spiderNet.png",
 				"others": "textures/ground_purple.png"
 			},
 			"receiveShadow": true
 		},
 		"destination": {
-			"edgeRadius": 1.2,
+			"edgeRadius": 5,
 			"texture": {
 				"top": "textures/undertale_heart.png",
 				"others": "textures/undertale_heart.png"
@@ -38,9 +38,9 @@
 			"receiveShadow": true			
 		},
 		"decoration": [{
-			"edgeRadius": 1.2,
+			"edgeRadius": 5,
 			"texture": {
-				"top": "textures/ground_purple.png",
+				"top": "textures/spiderNet.png",
 				"others": "textures/ground_purple.png"
 			},
 			"material": "models/nature_asset.mtl",
@@ -53,9 +53,9 @@
 			"receiveShadow": true
 		},
 		{
-			"edgeRadius": 1.2,
+			"edgeRadius": 5,
 			"texture": {
-				"top": "textures/ground_purple.png",
+				"top": "textures/spiderNet.png",
 				"others": "textures/ground_purple.png"
 			},
 			"material": "models/nature_asset.mtl",
@@ -68,9 +68,9 @@
 			"receiveShadow": true
 		}, 		
 		{
-			"edgeRadius": 1.2,
+			"edgeRadius": 5,
 			"texture": {
-				"top": "textures/ground_purple.png",
+				"top": "textures/spiderNet.png",
 				"others": "textures/ground_purple.png"
 			},
 			"material": "models/nature_asset.mtl",
@@ -83,11 +83,11 @@
 		}]
 	},
 	"stage": [
-		[".",".","D0","D0","D0","P","S","P","D0","D0",".","."],
-		[".",".","D0","D0","D0","P","P","P","D0","D0",".","."],
-		[".",".","D0","D0","D0","P","P","P","D0","D0",".","."],
-		[".",".","D0","D0","D0","P","P","P","D0","D0",".","."],
-		[".",".",".","D1","D2","D2","P","D2","D0",".",".","."],
+		[".",".","D0","D0","P","P","S","P","P","D0",".","."],
+		[".",".","D0","D0","P","P","P","P","P","D0",".","."],
+		[".",".","D0","D0","P","P","P","P","P","D0",".","."],
+		[".",".","D0","D0","P","P","P","P","P","D0",".","."],
+		[".",".",".","D1","D2","D2","P","P","D0",".",".","."],
 		[".",".",".","D0","P","P","P","P","D0",".",".","."],
 		[".",".",".","D0","D0","D0","P","P","D0",".",".","."],
 		[".","D0","D1","P","P","P","P","P","D0",".",".","."],
@@ -105,12 +105,8 @@
 		[".",".",".","D0","P","P","P","P","D0",".",".","."],		
 		[".",".",".",".","D0","P","D1","D0","P",".",".","."],
 		[".",".",".",".","D0","P","P",".","P",".",".","."],
-		[".",".",".",".","D0","P","P",".","P",".",".","."],
-		[".",".",".",".","D0","P","P",".","P",".",".","."],
-		[".",".",".","D0","P","P","P",".","P",".",".","."],
-		[".",".",".","D0","P","P","P",".","P",".",".","."],
-		[".",".","D0","P","P","D0","P",".",".",".",".","."],		
-		[".",".","P","P","D0",".",".",".",".",".",".","."],		
-		[".",".","P","F",".",".",".",".",".",".",".","."]
+		[".",".",".",".","D0","P","P",".",".",".",".","."],
+		[".",".",".",".",".","D0","F",".",".",".",".","."],		
+		[".",".",".",".",".","D1",".",".",".",".",".","."]
 	]
 }
