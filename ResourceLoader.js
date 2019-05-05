@@ -210,7 +210,7 @@ function ResourceLoader(mapFile="", themeFile="", stageFile="", mapFolder="", th
 		let decoList = this.map.platform.decoration;
 		if (!decoList) return;
 		for (let i = 0; i < decoList.length; i++) {
-			let deco = decoList[i];
+			var deco = decoList[i];
 			// avoid loading the same thing twice
 			if (this.decorations[deco.models]) continue;
 			// load the material beforehand
@@ -230,10 +230,17 @@ function ResourceLoader(mapFile="", themeFile="", stageFile="", mapFolder="", th
 								// duplicated color multiplication, because there is only ONE material (by reference)
 								if (deco.colorDepth) {
 									let obj = object.children[deco.model];
-									for (let j = 0; j < obj.material.length; j++) {
-										obj.material[j].color.r *= deco.colorDepth[0];
-										obj.material[j].color.g *= deco.colorDepth[1];
-										obj.material[j].color.b *= deco.colorDepth[2];
+									if (obj.material instanceof Array) {
+										for (let j = 0; j < obj.material.length; j++) {
+											obj.material[j].color.r *= deco.colorDepth[0];
+											obj.material[j].color.g *= deco.colorDepth[1];
+											obj.material[j].color.b *= deco.colorDepth[2];
+										}										
+									}
+									else if (obj.material instanceof Object) {
+										obj.material.color.r *= deco.colorDepth[0];
+										obj.material.color.g *= deco.colorDepth[1];
+										obj.material.color.b *= deco.colorDepth[2];										
 									}
 								}
 								loader.decorations[deco.models] = object;					
@@ -246,6 +253,7 @@ function ResourceLoader(mapFile="", themeFile="", stageFile="", mapFolder="", th
 					}, null, 
 					function (error) {
 						console.error("Unable to load the following material: ", deco.material, error);
+						loader.decorationsToLoad--;
 					});
 			}
 			else if (deco.models.endsWith(".json")) {

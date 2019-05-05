@@ -1,112 +1,113 @@
 {
 	"scene": {
 		"fog": {
-			"color": "#ccc0ff",
-			"near": 40,
-			"far": 100
+			"color": "#fb2",
+			"near": 100,
+			"far": 200
 		}
 	},
 	"sky": {
 		"size": 512,
 		"gradient": [0, 0, 0, 512],
-		"colorStop": [[0, "#9f75ee"], [0.4, "#9475ee"], [1, "#b282ff"]]
+		"colorStop": [[0, "#fb2"], [0.4, "#fb2"], [1, "#f93"]]
 	},
 	"light": {
 		"ambient": {
 			"color": "#606060"
 		},
 		"sunlight": {
-			"color": "#ffffaa",
-			"position": [100, 80, 0]
+			"color": "#fd5",
+			"position": [-50, 150, 500]
 		}
 	},
 	"platform": {
 		"normal": {
-			"edgeRadius": 1.2,
+			"edgeRadius": 2,
 			"texture": {
-				"top": "textures/ground_purple.png",
-				"others": "textures/ground_purple.png"
+				"top": "textures/rock2.png",
+				"others": "textures/rock2.png"
 			},
 			"receiveShadow": true
 		},
 		"destination": {
-			"edgeRadius": 1.2,
+			"edgeRadius": 2,
 			"texture": {
-				"top": "textures/undertale_heart.png",
-				"others": "textures/undertale_heart.png"
+				"top": "textures/dest2.png",
+				"others": "textures/dest2.png"
 			},
 			"receiveShadow": true			
 		},
 		"decoration": [{
-			"edgeRadius": 1.2,
-			"texture": {
-				"top": "textures/ground_purple.png",
-				"others": "textures/ground_purple.png"
+				"edgeRadius": 2,
+				"texture": {
+					"top": "textures/rock2.png",
+					"others": "textures/rock2.png"
+				},
+				"material": "models/nature_asset.mtl",
+				"models": "models/nature_asset.obj",
+				"model": 11,
+				"size": [6, 6, 6],
+				"position": [-20, 0, -60],
+				"castShadow": true,
+				"receiveShadow": true
 			},
-			"material": "models/nature_asset.mtl",
-			"models": "models/nature_asset.obj",
-			"model": 5,
-			"size": [6, 15, 6],
-			"position": [-2, 3, 6],
-			"colorDepth": [10, 10, 10],
-			"castShadow": true,
-			"receiveShadow": true
-		},
-		{
-			"edgeRadius": 1.2,
-			"texture": {
-				"top": "textures/ground_purple.png",
-				"others": "textures/ground_purple.png"
+			{
+				"edgeRadius": 2,
+				"texture": {
+					"top": "textures/rock2.png",
+					"others": "textures/rock2.png"
+				},
+				"material": "models/nature_asset.mtl",
+				"models": "models/nature_asset.obj",
+				"model": 12,
+				"size": [5, 7, 5],
+				"position": [-18, 0, -50],
+				"castShadow": true,
+				"receiveShadow": true
+			}, 		
+			{
+				"edgeRadius": 2,
+				"texture": {
+					"top": "textures/rock2.png",
+					"others": "textures/rock2.png"
+				},
+				"material": "models/nature_asset.mtl",
+				"models": "models/nature_asset.obj",
+				"model": 8,
+				"size": [7, 6, 4],
+				"position": [-15, 2, -26],		
+				"castShadow": true,
+				"receiveShadow": true			
 			},
-			"material": "models/nature_asset.mtl",
-			"models": "models/nature_asset.obj",
-			"model": 18,
-			"size": [8, 15, 8],
-			"colorDepth": [2, 2, 2],
-			"position": [-2.5, 2.5, 0],
-			"castShadow": true,
-			"receiveShadow": true
-		}, 		
-		{
-			"edgeRadius": 1.2,
-			"texture": {
-				"top": "textures/ground_purple.png",
-				"others": "textures/ground_purple.png"
-			},
-			"material": "models/nature_asset.mtl",
-			"models": "models/nature_asset.obj",
-			"model": 8,
-			"size": [7, 6, 4],
-			"position": [-15, 2, -26],
-			"castShadow": true,
-			"receiveShadow": true			
-		}]
+			{
+				"edgeRadius": 2,
+				"texture": {
+					"top": "textures/rock2.png",
+					"others": "textures/rock2.png"
+				},
+				"material": "",				
+				"models": "models/tower.obj",
+				"model": 0,
+				"size": [1, 1, 1],
+				"position": [0, 0, 0],
+				"castShadow": true,
+				"receiveShadow": true
+			}			
+		]
 	},
 	"stage": [
-		[".",".","D0","D0","P","P","S","P","P","D0",".","."],
-		[".",".","D0","D0","P","P","P","P","P","D0",".","."],
-		[".",".","D0","D0","P","P","P","P","P","D0",".","."],
-		[".",".","D0","D0","P","P","P","P","P","D0",".","."],
-		[".",".",".","D1","D2","D2","P","P","D0",".",".","."],
-		[".",".",".","D0","P","P","P","P","D0",".",".","."],
-		[".",".",".","D0","D0","D0","P","P","D0",".",".","."],
-		[".","D0","D1","P","P","P","P","P","D0",".",".","."],
-		[".",".","D0","P","D2","P","D0","P","D0",".",".","."],
-		[".",".","D0","P","D0","P","P","P","P","D0",".","."],
-		[".",".",".",".","D0","P","P","P","P","D0",".","."],
-		[".",".",".",".",".",">","H1","<","D1",".",".","."],
-		[".",".",".",".",".","D1","P","P",".","P",".","."],
-		[".",".",".",".","D0","P","P","P","D1","D0",".","."],
-		[".",".",".","D0","P","P","P","P","P","P","D0","."],		
-		[".",".",".","D0","P",".","D1","P","P","D0",".","."],
-		[".",".","D0","P","P",".",".","P","P","D0",".","."],
-		[".",".",".","D0","P",".",".","P",".","D0",".","."],
-		[".",".",".","D0","P","D1","P","P","D0",".",".","."],
-		[".",".",".","D0","P","P","P","P","D0",".",".","."],		
-		[".",".",".",".","D0","P","D1","D0","P",".",".","."],
-		[".",".",".",".","D0","P","P",".","P",".",".","."],
-		[".",".",".",".","D0","P","P",".",".",".",".","."],
-		[".",".",".",".",".","D0","F",".",".",".",".","."],		
-		[".",".",".",".",".","D1",".",".",".",".",".","."]
+		[".",".",".","S",".",".",".",".",".",".",".","."],
+		[".",".","D2","P","P","P","P","P","P","P",".","."],
+		[".",".",".",".",".","D1",".",".","D1","P",".","."],
+		[".",".",".","D0","P","P","P","P",".","P",".","."],
+		[".",".",".","P",".","P",".","P",".","P",".","."],
+		[".",".",".","P",".","P",".","P",".","P",".","."],
+		[".","F","P","P",".","P",".","P",".","P",".","."],
+		[".","D2",".","P",".","P",".","P",".","P",".","."],
+		[".",".",".","P","P","P","D2","P","D1","P",".","."],
+		[".",".",".","D0",".","D0",".","P",".","P",".","."],
+		[".",".",".","P","P","P","P","P",".","P",".","."],
+		[".",".",".","P",".",".",".",".",".","P",".","."],
+		[".",".","D1","P","P","P","P","P","P","P","D0","."]				
 	]
 }

@@ -17,7 +17,7 @@
 		},
 		"sunlight": {
 			"color": "#fd5",
-			"position": [-50, 80, 500]
+			"position": [-50, 150, 500]
 		}
 	},
 	"platform": {
