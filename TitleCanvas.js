@@ -1,4 +1,4 @@
-function TitleCanvas(width, height, name, source, imageFile) {
+function TitleCanvas(width, height, name, source, imageFile, onComplete=null) {
 	this.titleXPos = 0;
 	this.canvasElement = document.createElement('canvas');
 	this.canvasElement.id = "titleCanvas";
@@ -14,6 +14,7 @@ function TitleCanvas(width, height, name, source, imageFile) {
 	this.t = -Math.pow(window.innerWidth/2+this.width, 1/3);
 	this.imageFile = imageFile;
 	this.duration = 5000;
+	this.onComplete = onComplete;
 
 	var myself = this;
 
@@ -21,9 +22,12 @@ function TitleCanvas(width, height, name, source, imageFile) {
   	this.moveTitle = function() {
 		if (myself.t < Math.pow(window.innerWidth, 1/3)) {
 		  	myself.drawTitle(myself.t*myself.t*myself.t + window.innerWidth/2 - myself.width/2 , window.innerHeight/2 - myself.height/1.2, myself.width, myself.height);
-		  	myself.t += 0.04;
-		  	setTimeout(myself.moveTitle, 10);
-		} else { myself.removeCanvas(); }
+		  	myself.t += 0.1;
+		  	setTimeout(myself.moveTitle, 20);
+		} else { 
+			myself.removeCanvas(); 
+			myself.onComplete();
+		}
   	}
 
   	this.drawTitle = function(x, y, width, height) {

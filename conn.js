@@ -194,6 +194,7 @@ function sendGameData() {
             "collision": collision
         }
     };
+    collision = false;
     collision = false; // reset the flag of collision detech
     if (loseInMult) {
         data.game.lost = loseInMult;
@@ -261,8 +262,6 @@ function processGameData(data) {
         }
         return;
     }
-    // Set the collision flag
-    collision = data.collision;
     // Set the position
     peerPlayer.position.set(data.position[0], data.position[1], data.position[2]);
     // Set the facing direction
@@ -292,49 +291,51 @@ function processGameData(data) {
 
 // When peerPlayer and player collide, solve the collision and bounce off.
 function solveCollision(data) {
-
     // check collision
+    if (colliding) return;
     playerBoundingBox = new THREE.Box3().setFromObject(player);
     peerPlayerBoundingBox = new THREE.Box3().setFromObject(peerPlayer);
     let collisionHere = playerBoundingBox.intersectsBox(peerPlayerBoundingBox);
-
-    // player not moving
-    if (collisionHere && player.velocityY == 0) {
-        if(collisionHere) console.log("collision detected");
-        // peer collide horizontally
-        if(Math.abs(data.velocity[0]) > 0.0001) {
-            // from right
-            if(player.position.x < peerPlayer.position.x)
-                collidePlayer(directionX.RIGHT, directionZ.NULL);
-            // from left
-            else 
-                collidePlayer(directionX.LEFT, directionZ.NULL);
-        // peer collide vertically
-        } else if (Math.abs(data.velocity[2]) > 0.0001) {
-            // from bottom
-            if(player.position.z > peerPlayer.position.z) 
-                collidePlayer(directionX.NULL, directionZ.UP);
-            // from above
-            else 
-                collidePlayer(directionX.NULL, directionZ.DOWN);
+    collision = data.collision || collisionHere;
+    if (collision) { // either checked collision or passed collision
+        colliding = true;
+        // player not moving
+        if (Math.abs(player.velocityX) < 0.001 && Math.abs(player.velocityY) < 0.001 && Math.abs(player.velocityZ) < 0.001) {
+            // peer collide horizontally
+            if(Math.abs(data.velocity[0]) > 0.0001) {
+                // from left
+                if(player.position.x < peerPlayer.position.x)
+                    collidePlayer(directionX.RIGHT, directionZ.NULL);
+                // from right
+                else 
+                    collidePlayer(directionX.LEFT, directionZ.NULL);
+            // peer collide vertically
+            } else if (Math.abs(data.velocity[2]) > 0.0001) {
+                // from front
+                if(player.position.z > peerPlayer.position.z) 
+                    collidePlayer(directionX.NULL, directionZ.UP);
+                // from back
+                else 
+                    collidePlayer(directionX.NULL, directionZ.DOWN);
+            }
         }
-    }
-    //jumping
-        else if(collisionHere && player.velocityY != 0) {
-        //pull back
-        var size = new THREE.Vector3( 0, 0, 0);
-        peerPlayerBoundingBox.getSize(size);
-        if(playerX > prevPlayerX) 
-            player.position.x = peerPlayer.position.x - size.x;
-        else if(playerX < prevPlayerX) 
-            player.position.x = peerPlayer.position.x + size.x;
-        if(playerZ > prevPlayerZ) 
-            player.position.z = peerPlayer.position.z - size.z;
-        else if(playerZ < prevPlayerZ) 
-            player.position.z = peerPlayer.position.z + size.z;
-        playerX = prevPlayerX;
-        playerZ = prevPlayerZ;
-        player.velocityX = -player.velocityX;
-        player.velocityZ = -player.velocityZ;
+        // jumping
+        else {
+            // pull back
+            var size = new THREE.Vector3(0, 0, 0);
+            peerPlayerBoundingBox.getSize(size);
+            if (playerX > prevPlayerX) 
+                player.position.x = peerPlayer.position.x - size.x / 2;
+            else if (playerX < prevPlayerX) 
+                player.position.x = peerPlayer.position.x + size.x / 2;
+            if (playerZ > prevPlayerZ) 
+                player.position.z = peerPlayer.position.z - size.z / 2;
+            else if (playerZ < prevPlayerZ) 
+                player.position.z = peerPlayer.position.z + size.z / 2;
+            playerX = prevPlayerX;
+            playerZ = prevPlayerZ;
+            player.velocityX = -player.velocityX;
+            player.velocityZ = -player.velocityZ;
+        }     
     }
 }

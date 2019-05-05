@@ -63,8 +63,9 @@ function checkNextNote() {
 	// Reach the last note
 	if (currentRow >= notesContent.length) {
 		// The music bar is clean, then finish
-		if (notesList.length == 0) {
-			stageEnd();
+		if (notesList.length == 0 && !paused) {
+			if (multiplaying) stageFailMulti();
+			else stageFail();
 		}
 		return;
 	}
@@ -93,17 +94,18 @@ function stageBegin() {
 	// create title canvas and show it on screen
 	// console.log(titleImageWidth);
 	// console.log(titleImageHeight);
-	titleCanvas = new TitleCanvas(titleImageWidth, titleImageHeight, titleName, titleSource, titleImageFile);
-	setTimeout(function() {
-		// Countdown
-		var waitBlinking = widget.blinkSimpleText(stageBeginMsg, "50%", "50%", ["cubic", "black-4-white"], 100);
-		setTimeout(startSong, waitBlinking);
-		setTimeout(function() {canCheckNextNote = true;}, waitPeriod + waitBlinking);
-	}, titleCanvas.duration)
+	titleCanvas = new TitleCanvas(titleImageWidth, titleImageHeight, titleName, titleSource, titleImageFile, () => {
+		// Countdown and start checking notes
+		widget.blinkSimpleText(stageBeginMsg, "50%", "50%", ["cubic", "black-4-white"], 100, () => {
+			startSong();
+			setTimeout(() => {canCheckNextNote = true;}, waitPeriod);
+		});
+	});
 }
 
 function stageEnd() {
 	console.log("Stage finishes.");
+	resourceLoader.song.volume = 1.0;
 	if (widget.screen.contains(explosion)) widget.screen.removeChild(explosion);
 	pauseSong();
 	songStarted = false;

@@ -3,7 +3,7 @@
 		"fog": {
 			"color": "#a0c0ff",
 			"near": 40,
-			"far": 100
+			"far": 160
 		}
 	},
 	"sky": {

@@ -94,7 +94,10 @@ function setHitArea(theme) {
 function setFlashArea(theme) {
 	// Retrieve the attributes
 	let width = theme.width;
-	let color = theme.color;
+	let normalColor = theme.color;
+	let double = theme.double;
+	let reverse = theme.reverse;
+	let wrongColor = theme.wrong;
 
 	// create the gradient
 	var gradient = document.createElementNS(svgns, 'linearGradient');
@@ -106,11 +109,11 @@ function setFlashArea(theme) {
 	var stop0 = document.createElementNS(svgns, 'stop');
 	stop0.setAttribute("offset", "0%");
 	stop0.style.stopOpacity = 1;
-	stop0.style.stopColor = color;
+	stop0.style.stopColor = normalColor;
 	var stop1 = document.createElementNS(svgns, 'stop');
 	stop1.setAttribute("offset", "100%");
 	stop1.style.stopOpacity = 0;
-	stop1.style.stopColor = color;
+	stop1.style.stopColor = normalColor;
 	gradient.appendChild(stop0);
 	gradient.appendChild(stop1);
 	defs.append(gradient);
@@ -122,19 +125,40 @@ function setFlashArea(theme) {
 	flashArea.setAttribute("width", width);
 	flashArea.setAttribute("height", "100%");
 	flashArea.setAttribute("fill", "url(#flash)");
-	flashArea.setAttribute("opacity", 0);
+	flashArea.setAttribute("fill-opacity", 0);
 	// Set functions for it to flash and fade out
-	flashArea.flash = function() {
+	flashArea.flash = function(type=-1) {
+		// change the display color depending on the correctness
+		switch (type) {
+		case 0: // normal
+			stop0.style.stopColor = normalColor;
+			stop1.style.stopColor = normalColor;
+			break;
+		case 1: // double
+			stop0.style.stopColor = double;
+			stop1.style.stopColor = double;	
+			break;		
+		case 2: // reverse
+			stop0.style.stopColor = reverse;
+			stop1.style.stopColor = reverse;		
+			break;
+		default:
+			stop0.style.stopColor = wrongColor;
+			stop1.style.stopColor = wrongColor;		
+		}
 		fadeTime = theme.fade ? theme.fade : fadeTime;
-		var opacity = parseFloat(flashArea.getAttribute("opacity"));
-		flashArea.setAttribute("opacity", 1);
+		var opacity = parseFloat(flashArea.getAttribute("fill-opacity"));
+		// With unknown reason, explosion follows the opacity of the flash area
+		explosion.setAttribute("opacity", 0);
+		flashArea.setAttribute("fill-opacity", 1);
+		// Unset all child nodes of the flash area
 		setTimeout(flashArea.fade, fadeTime / 20);
 	}
 	flashArea.fade = function() {
-		var opacity = parseFloat(flashArea.getAttribute("opacity"));
+		var opacity = parseFloat(flashArea.getAttribute("fill-opacity"));
 		opacity -= 0.05;
-		flashArea.setAttribute("opacity", opacity);
-		if (opacity > 0)
+		flashArea.setAttribute("fill-opacity", opacity);
+		if (opacity > 0.0)
 			setTimeout(flashArea.fade, fadeTime / 20);
 	}
 	svg.append(flashArea);
@@ -157,7 +181,6 @@ function setNoteExplosion(theme) {
 	explosion.setAttribute("fill", color);
 	explosion.setAttribute("stroke", color);
 	explosion.setAttribute("opacity", 0);
-
 	explosion.flash = function() {
 		if (notesList.length == 0) return;
 
@@ -172,12 +195,12 @@ function setNoteExplosion(theme) {
 		explosion.setAttribute("x", posX - radius*scaleFactor/window.innerWidth*100 + "%");
 
 		// Fade out after flash
-		var opacity = parseFloat(explosion.getAttribute("opacity"));
 		explosion.setAttribute("opacity", 1);
 	}
 
 	explosion.fade = function() {
-		var opacity = parseFloat(flashArea.getAttribute("opacity"));
+		var opacity = parseFloat(explosion.getAttribute("opacity"));
+		if (opacity < 0.0) return;
 		opacity -= 0.05;
 		explosion.setAttribute("opacity", opacity);
 	}
@@ -314,7 +337,7 @@ function moveNotes() {
 				notesList.shift();
 				i--;
 				// increase failed count
-				if (!(loseInMult || winInMult)) {
+				if (multiplaying && !(loseInMult || winInMult)) {
 					let w = widget.getWidget("multi-missed-cnt");
 					w.textContent = "Missed: " + (++playMissed);
 				}
@@ -351,12 +374,16 @@ function jumpable() {
 	return (leftBound && rightBound);
 }
 
-function successJumpClearup() {
-	flashArea.flash();
+function successJumpClearup(type) {
+	flashArea.flash(type);
 	explosion.flash();
 	if (DEBUG) return;
 	removeNote(notesList[0]);
 	notesList.shift();
+}
+
+function failedJumpClearup() {
+	flashArea.flash();
 }
 
 function trimPercentage(percent) {
