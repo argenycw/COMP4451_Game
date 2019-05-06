@@ -101,7 +101,7 @@ function showHostDialog() {
 	var desc = widget.createSimpleText("Your Peer ID: ", "50%", "40%", ["cubic", "black-fill"], "2.5vw");
 	// Host the peer connection
 	let randString = host();
-	var peerId = widget.createSimpleText(randString, "50%", "50%", ["cubic", "red-fill", "svg-selectable"], "2vw", "peerId");
+	var peerId = widget.createSimpleText(randString, "50%", "50%", ["sub-cubic", "red-fill", "svg-selectable"], "2vw", "peerId");
 	var hostStatus = widget.createSimpleText("Waiting for connection...", "50%", "70%", ["cubic", "black-fill"], "2vw", "hostStatus");
 	var backCallBack = function() {
 		terminateConnection();
@@ -262,13 +262,13 @@ function showHowToPlay() {
 	var dialog = widget.showDialog("25%", "10%", "50%", "80%", ["brown-dialog"], "How To Play");
 	var title = widget.createSimpleText("How To Play", "50%", "20%", ["cubic", "brown-rect-text"], "5vw");
 	var text1 = widget.createSimpleText("W/A/S/D or up/down/left/right arrows to move your character.", "50%", "30%", ["sub-cubic"], "1.4vw");
-	var text5 = widget.createSimpleText("Find and jump to the destination platform to win the game!", "50%", "38%", [], "1.6vw");
-	var note_normal_image = widget.createImage("images/firework_normal_01.png", "8%", "40%", "15%", "7.5%");
-	var note_double_image = widget.createImage("images/firework_double_01.png", "8%", "55%", "15%", "7.5%");
-	var note_reverse_image = widget.createImage("images/firework_reverse_01.png", "7%", "70%", "15%", "7.5%");
-	var text2 = widget.createSimpleText("Normal note, you can jump to another platform", "58%", "45%", ["sub-cubic"], "1.4vw");
-	var text3 = widget.createSimpleText("Double note, you will jump 2 platforms at once.", "58%", "60%", ["sub-cubic"], "1.4vw");
-	var text4 = widget.createSimpleText("Reverse note, you will jump backward.", "52%", "75%", ["sub-cubic"], "1.4vw");
+	var text5 = widget.createSimpleText("Find and jump to the destination platform to win the game!", "50%", "38%", ["sub-cubic"], "1.4vw");
+	var note_normal_image = widget.createImage("images/firework_normal_01.png", "8%", "45%", "15%", "7.5%");
+	var note_double_image = widget.createImage("images/firework_double_01.png", "8%", "59%", "15%", "7.5%");
+	var note_reverse_image = widget.createImage("images/firework_reverse_01.png", "7%", "73%", "15%", "7.5%");
+	var text2 = widget.createSimpleText("Normal note, you can jump to another platform", "58%", "50%", ["sub-cubic"], "1.4vw");
+	var text3 = widget.createSimpleText("Double note, you will jump 2 platforms at once.", "58%", "64%", ["sub-cubic"], "1.4vw");
+	var text4 = widget.createSimpleText("Reverse note, you will jump backward.", "52%", "78%", ["sub-cubic"], "1.4vw");
 
 	var backCallBack = function() {
 		widget.remove(dialog);

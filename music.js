@@ -94,13 +94,21 @@ function stageBegin() {
 	// create title canvas and show it on screen
 	// console.log(titleImageWidth);
 	// console.log(titleImageHeight);
-	titleCanvas = new TitleCanvas(titleImageWidth, titleImageHeight, titleName, titleSource, titleImageFile, () => {
-		// Countdown and start checking notes
+	if (multiplaying) {
 		widget.blinkSimpleText(stageBeginMsg, "50%", "50%", ["cubic", "black-4-white"], 100, () => {
 			startSong();
 			setTimeout(() => {canCheckNextNote = true;}, waitPeriod);
 		});
-	});
+	}
+	else {
+		titleCanvas = new TitleCanvas(titleImageWidth, titleImageHeight, titleName, titleSource, titleImageFile, () => {
+			// Countdown and start checking notes
+			widget.blinkSimpleText(stageBeginMsg, "50%", "50%", ["cubic", "black-4-white"], 100, () => {
+				startSong();
+				setTimeout(() => {canCheckNextNote = true;}, waitPeriod);
+			});
+		});
+	}
 }
 
 function stageEnd() {
