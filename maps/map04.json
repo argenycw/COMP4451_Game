@@ -78,20 +78,6 @@
 				"position": [-15, 2, -26],		
 				"castShadow": true,
 				"receiveShadow": true			
-			},
-			{
-				"edgeRadius": 2,
-				"texture": {
-					"top": "textures/rock2.png",
-					"others": "textures/rock2.png"
-				},
-				"material": "",				
-				"models": "models/tower.obj",
-				"model": 0,
-				"size": [1, 1, 1],
-				"position": [0, 0, 0],
-				"castShadow": true,
-				"receiveShadow": true
 			}			
 		]
 	},
