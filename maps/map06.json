@@ -9,7 +9,7 @@
 	"sky": {
 		"size": 512,
 		"gradient": [0, 0, 0, 512],
-		"colorStop": [[0, "#fd5"], [0.4, "#fe7"], [1, "#fff0ee"]]
+		"colorStop": [[0, "#003"], [0.6, "#003"], [1, "#449"]]
 	},
 	"light": {
 		"ambient": {
@@ -24,8 +24,8 @@
 		"normal": {
 			"edgeRadius": 2,
 			"texture": {
-				"top": "textures/rock.png",
-				"others": "textures/rock.png"
+				"top": "textures/piano.png",
+				"others": "textures/piano.png"
 			},
 			"receiveShadow": true
 		},
@@ -40,8 +40,8 @@
 		"decoration": [{
 				"edgeRadius": 2,
 				"texture": {
-					"top": "textures/rock.png",
-					"others": "textures/rock.png"
+					"top": "textures/piano.png",
+					"others": "textures/piano.png"
 				},
 				"material": "models/nature_asset.mtl",
 				"models": "models/nature_asset.obj",
@@ -55,8 +55,8 @@
 			{
 				"edgeRadius": 2,
 				"texture": {
-					"top": "textures/rock.png",
-					"others": "textures/rock.png"
+					"top": "textures/piano.png",
+					"others": "textures/piano.png"
 				},
 				"material": "models/nature_asset.mtl",
 				"models": "models/nature_asset.obj",
