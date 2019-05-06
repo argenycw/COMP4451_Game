@@ -4,6 +4,21 @@
 			"color": "#a0c0ff",
 			"near": 40,
 			"far": 160
+		},
+		"particles": {
+			"source": "images/cloud.png",
+			"size": 8,
+			"count": 1000,
+			"init": [-40, 30, 300],
+			"aggregate": {
+				"sector": 10,
+				"range": [15, 10, 15]
+			},
+			"spawn": "world",
+			"initRange": [100, 60, 250],
+			"velocity": [0.1, 0, 0],
+			"velocityRange": [0.05, 0, 0],
+			"upperlimit": [220, null, null]
 		}
 	},
 	"sky": {
@@ -48,7 +63,6 @@
 			"model": 5,
 			"size": [6, 15, 6],
 			"position": [-2, 3, 6],
-			"colorDepth": [10, 10, 10],
 			"castShadow": true,
 			"receiveShadow": true
 		},
@@ -62,8 +76,8 @@
 			"models": "models/nature_asset.obj",
 			"model": 18,
 			"size": [8, 15, 8],
-			"colorDepth": [2, 2, 2],
 			"position": [-2.5, 2.5, 0],
+			"colorDepth": [2, 2, 2],			
 			"castShadow": true,
 			"receiveShadow": true
 		}, 		

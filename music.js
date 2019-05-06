@@ -109,10 +109,13 @@ function stageBegin() {
 			});
 		});
 	}
+	// play the environment sound
+	if (resourceLoader.environment) resourceLoader.environment.start("sound");
 }
 
 function stageEnd() {
 	console.log("Stage finishes.");
+	if (resourceLoader.environment) resourceLoader.environment.stop();
 	resourceLoader.song.volume = 1.0;
 	if (widget.screen.contains(explosion)) widget.screen.removeChild(explosion);
 	pauseSong();
@@ -128,9 +131,13 @@ function startSong() {
 
 function resumeSong() {
 	resourceLoader.song.play();
+	// resume the environment sound as well
+	if (resourceLoader.environment) resourceLoader.environment.start("sound");
 }
 
 function pauseSong() {
 	if (!resourceLoader.song) return;
 	resourceLoader.song.pause();
+	// pause the environment sound as well
+	if (resourceLoader.environment) resourceLoader.environment.stop();	
 }

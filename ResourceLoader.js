@@ -13,6 +13,7 @@ function ResourceLoader(mapFile="", themeFile="", stageFile="", mapFolder="", th
 	this.theme = null;
 	this.stage = null;
 	this.song = null;
+	this.environment = null;
 	this.player = null;
 	this.player2 = null;
 	this.locked = false;
@@ -29,7 +30,7 @@ function ResourceLoader(mapFile="", themeFile="", stageFile="", mapFolder="", th
 
 	this.loadCompleted = function() {
 		return (this.map && this.theme && this.stage && this.allTexturesLoaded() && this.player && this.player2 &&
-			this.allDecorationLoaded() && this.song && this.song.readyState > 1);
+			this.allDecorationLoaded() && this.song && this.song.readyState > 1 && (this.environment !== 0));
 	}
 
 	this.allCallbackFilled = function() {
@@ -107,6 +108,19 @@ function ResourceLoader(mapFile="", themeFile="", stageFile="", mapFolder="", th
 		return;		
 	}
 
+	this.loadEnvironmentSound = function(source, length) {
+		try {
+			this.environment = new SeamlessLoop();
+			this.environment.addUri(source, length, "sound");
+		}
+		catch (e) {
+			console.error(e);
+			alert("Unable to load the song: " + songFile);
+			return;
+		}
+		return;		
+	}
+
 	this.loadStage = function() {
 		// Load the json file representing the music
 		var request = new XMLHttpRequest();
@@ -125,7 +139,11 @@ function ResourceLoader(mapFile="", themeFile="", stageFile="", mapFolder="", th
 			 	}
 			 	// Use global scope to access the loader
 			 	loader.stage = content;
-				loader.loadSong();
+				loader.loadSong()
+				if (content.environment) {
+					loader.environment = 0;
+					loader.loadEnvironmentSound(content.environment, content.envduration);
+				}
 			}
 			else if (request.readyState == 4) {
 				// TODO handle if theme is not found
@@ -210,9 +228,9 @@ function ResourceLoader(mapFile="", themeFile="", stageFile="", mapFolder="", th
 		let decoList = this.map.platform.decoration;
 		if (!decoList) return;
 		for (let i = 0; i < decoList.length; i++) {
-			var deco = decoList[i];
+			let deco = decoList[i];
 			// avoid loading the same thing twice
-			if (this.decorations[deco.models]) continue;
+			//if (this.decorations[deco.models]) continue;
 			// load the material beforehand
 			// for mtl and obj
 			if (deco.models.endsWith(".obj")) {
@@ -227,23 +245,26 @@ function ResourceLoader(mapFile="", themeFile="", stageFile="", mapFolder="", th
 							function (object) {
 								// To increase the saturation of the color, if specified
 								// it is placed here instead of stage->renderDecoration so as to avoid 
-								// duplicated color multiplication, because there is only ONE material (by reference)
+								// duplicated color multiplication, because there is only ONE material (by reference)						  
 								if (deco.colorDepth) {
 									let obj = object.children[deco.model];
-									if (obj.material instanceof Array) {
+									if (obj.material.constructor == Array) {
 										for (let j = 0; j < obj.material.length; j++) {
+											console.log(obj.material[j].color);
 											obj.material[j].color.r *= deco.colorDepth[0];
 											obj.material[j].color.g *= deco.colorDepth[1];
 											obj.material[j].color.b *= deco.colorDepth[2];
-										}										
+										}							
 									}
 									else if (obj.material instanceof Object) {
-										obj.material.color.r *= deco.colorDepth[0];
-										obj.material.color.g *= deco.colorDepth[1];
-										obj.material.color.b *= deco.colorDepth[2];										
+										if (obj.material.color) {
+											obj.material.color.r *= deco.colorDepth[0];
+											obj.material.color.g *= deco.colorDepth[1];
+											obj.material.color.b *= deco.colorDepth[2];	
+										}																	
 									}
 								}
-								loader.decorations[deco.models] = object;					
+								loader.decorations[deco.models] = object;
 							}, null,
 							// called when loading has errors
 							function (error) {
@@ -253,7 +274,6 @@ function ResourceLoader(mapFile="", themeFile="", stageFile="", mapFolder="", th
 					}, null, 
 					function (error) {
 						console.error("Unable to load the following material: ", deco.material, error);
-						loader.decorationsToLoad--;
 					});
 			}
 			else if (deco.models.endsWith(".json")) {

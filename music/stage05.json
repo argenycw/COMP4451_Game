@@ -6,6 +6,8 @@
 	"imageWidth": 400,
 	"imageHeight": 200,
 	"song": "linkWillSaveUs.mp3",
+	"environment": "sounds/rain.ogg",
+	"envduration": 1648, 
 	"timeTravel": 2.5,
 	"wait": 0,
 	"period": 3040,

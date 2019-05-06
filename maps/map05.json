@@ -4,6 +4,17 @@
 			"color": "#222",
 			"near": 50,
 			"far": 180
+		},
+		"particles": {
+			"source": "images/raindrop.png",
+			"size": 1,
+			"count": 600,
+			"init": [0, 160, 0],
+			"spawn": "follow",
+			"initRange": [200, 200, 200],
+			"velocity": [0, -2, -0.8],
+			"velocityRange": [0, 0.5, 0],
+			"lowerlimit": [null, -40, null]
 		}
 	},
 	"sky": {

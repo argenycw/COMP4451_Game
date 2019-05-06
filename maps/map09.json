@@ -1,7 +1,7 @@
 {
 	"scene": {
 		"fog": {
-			"color": "#ccc0ff",
+			"color": "#180010",
 			"near": 40,
 			"far": 100
 		}

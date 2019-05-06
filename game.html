@@ -35,6 +35,7 @@
 	<script src="lib/MTLLoader.js"></script>
 	<script src="lib/RoundEdgedBox.js"></script>
 	<script src="lib/MeshLine.js"></script>
+	<script src="lib/SeamlessLoop.js"></script>
 	<!-- Local script does work: <script src="lib/peerjs.min.js"></script> -->
 	<script src="https://unpkg.com/peerjs@1.0.0/dist/peerjs.min.js"></script>
 	<script src="ResourceLoader.js"></script>
@@ -48,7 +49,7 @@
 </head>
 <body>
 	<script>
-		const DEBUG = false;
+		const DEBUG = true;
 		const stageBeginMsg = ["3", "2", "1", "Stage Begin"];
 		const soundList = ["jump01.wav", "jump02.wav", "land.wav", "cursor.ogg", "collide.wav", "fall.wav", "countdown.mp3", "start.mp3"];
 		var g_resourceLoader = null;

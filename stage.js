@@ -143,11 +143,18 @@ function particleSystemInit(setup) {
 	let count = (setup.count ? setup.count : 100);
 	let initPos = (setup.init ? setup.init : [0, 0, 0]);
 	let initRange = (setup.initRange ? setup.initRange : [0, 0, 0]);
+	let spawnMethod = (setup.spawn ? setup.spawn : "follow");
 	let initVelocity = (setup.velocity ? setup.velocity : [0, 0, 0]);
 	let velocityRange = (setup.velocityRange ? setup.velocityRange : [0, 0, 0]);
 	let upperlimit = (setup.upperlimit ? setup.upperlimit : null); // limit: the max position (x/y/z) the particles can reach
 	let lowerlimit = (setup.lowerlimit ? setup.lowerlimit : null);
 	let lifespan = (setup.lifespan ? setup.lifespan : 999999); // lifespan: the number of frames to survive, infinity by default
+	let aggregate = setup.aggregate;
+	if (aggregate) {
+		var sector = setup.aggregate.sector;
+		var aggRange = setup.aggregate.range;
+		var grouping = parseInt(count / sector);
+	}
 
 	// create the particle variables
 	var particles = new THREE.Geometry();
@@ -169,25 +176,67 @@ function particleSystemInit(setup) {
 		return false;	
 	}
 
-	function createParticle() {
+	function createParticle(agg=null, aggSector=null) {
 		// create a particle with random position values
-		let pX = initPos[0] + (Math.random() - 0.5) * initRange[0];
-		let pY = initPos[1] + (Math.random() - 0.5) * initRange[1];
-		let pZ = initPos[2] + (Math.random() - 0.5) * initRange[2];
+		var pX, pY, pZ;
+		if (spawnMethod == "follow") {
+			let playx = 0, playy = 0, playz = 0;
+			if (player) {
+				playx = player.position.x;
+				playy = player.position.y;
+				playz = player.position.z;
+			}
+			pX = playx + initPos[0] + (Math.random() - 0.5) * initRange[0];
+			pY = playy + initPos[1] + (Math.random() - 0.5) * initRange[1];
+			pZ = playz + initPos[2] + (Math.random() - 0.5) * initRange[2];
+		}
+		else if (spawnMethod == "world") {
+			pX = initPos[0] + (Math.random() - 0.5) * initRange[0];
+			pY = initPos[1] + (Math.random() - 0.5) * initRange[1];
+			pZ = initPos[2] + (Math.random() - 0.5) * initRange[2];
+		}
+		// handle aggregation
+		let aggLeader = false;
+		if (agg) {
+			if (agg[aggSector]) {
+				// redefine initRange into aggreation range
+				pX = agg[aggSector][0] + (Math.random() - 0.5) * aggRange[0];
+				pY = agg[aggSector][1] + (Math.random() - 0.5) * aggRange[1];
+				pZ = agg[aggSector][2] + (Math.random() - 0.5) * aggRange[2];
+			}
+			else {
+				// use first particle as refenence of center
+				agg[aggSector] = [pX, pY, pZ];
+				aggLeader = true;	
+			}
+		}		
 		var particle = new THREE.Vector3(pX, pY, pZ);
+		if (agg) {
+			// mark the leadership and sector the particle belongs to
+			if (aggLeader) particle.isCenter = true;
+			particle.sector = aggSector;
+		}
 		particle.lifespan = lifespan;		
 		return particle;
 	}
 
 	// now create the individual particles
-	for (var p = 0; p < count; p++) {
-		let particle = createParticle();
+	var grouper = {};
+	for (let p = 0; p < count; p++) {
+		if (aggregate) {
+			let div = parseInt(p / grouping);
+			var particle = createParticle(grouper, div);
+		}
+		else {
+			var particle = createParticle();
+		}
 		// add it to the geometry
 		particles.vertices.push(particle);
 	}
 
 	// create the particle system
 	particleSystem = new THREE.Points(particles, pMaterial);
+	particleSystem.aggregation = grouper;
 	// set the update function in animate
 	particleSystem.updateParticles = () => {
 		for (var i = 0; i < count; i++) {
@@ -195,10 +244,19 @@ function particleSystemInit(setup) {
 			particles.vertices[i].y += initVelocity[1] + (Math.random() - 0.5) * velocityRange[1];
 			particles.vertices[i].z += initVelocity[2] + (Math.random() - 0.5) * velocityRange[2];
 			particles.vertices[i].lifespan--;
-			if (particles.vertices[i].lifespan < 0 || reachLimit(particles.vertices[i].x, particles.vertices[i].y
-				, particles.vertices[i].z)) {
+			if (particles.vertices[i].lifespan < 0 || reachLimit(particles.vertices[i].x, particles.vertices[i].y, particles.vertices[i].z)) {				
 				// remove this particle, and create another new particle at initPos
-				particles.vertices[i] = createParticle();
+				if (aggregate) {
+					// reconstruct a new center
+					let p = particles.vertices[i];
+					if (p.isCenter) {
+						grouper[p.sector] = null;
+					}
+					particles.vertices[i] = createParticle(grouper, p.sector);
+				}
+				else {
+					particles.vertices[i] = createParticle();
+				}
 			}
 		}
 		particles.verticesNeedUpdate = true;
@@ -520,7 +578,9 @@ function stageOnSuccessLoad(content) {
  	buildPlatforms(content.stage, content.platform);
  	// Set the interval with a specific FPS
  	requestAnimationFrame(animate);
- 	animationInterval = setInterval(function() {requestAnimationFrame(animate);}, 1000 / c_FPS);
+ 	animationInterval = setInterval(function() {
+ 		requestAnimationFrame(animate);
+ 	}, 1000 / c_FPS);
 	paused = false;
 }
 

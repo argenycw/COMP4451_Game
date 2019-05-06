@@ -1,7 +1,7 @@
 {
 	"scene": {
 		"fog": {
-			"color": "#ccc0ff",
+			"color": "#180010",
 			"near": 40,
 			"far": 100
 		}
@@ -38,82 +38,82 @@
 			"receiveShadow": true			
 		},
 		"decoration": [{
-			"edgeRadius": 1.2,
-			"texture": {
-				"top": "textures/ground_blue.png",
-				"others": "textures/ground_blue.png"
+				"edgeRadius": 2,
+				"texture": {
+					"top": "textures/ground_blue.png",
+					"others": "textures/ground_blue.png"
+				},
+				"material": "models/nature_asset.mtl",
+				"models": "models/nature_asset.obj",
+				"model": 11,
+				"size": [6, 6, 6],
+				"position": [-20, 0, -60],
+				"castShadow": true,
+				"receiveShadow": true
 			},
-			"material": "models/nature_asset.mtl",
-			"models": "models/nature_asset.obj",
-			"model": 5,
-			"size": [6, 15, 6],
-			"position": [-2, 3, 6],
-			"colorDepth": [10, 10, 10],
-			"castShadow": true,
-			"receiveShadow": true
-		},
-		{
-			"edgeRadius": 1.2,
-			"texture": {
-				"top": "textures/ground_blue.png",
-				"others": "textures/ground_blue.png"
-			},
-			"material": "models/nature_asset.mtl",
-			"models": "models/nature_asset.obj",
-			"model": 18,
-			"size": [8, 15, 8],
-			"colorDepth": [2, 2, 2],
-			"position": [-2.5, 2.5, 0],
-			"castShadow": true,
-			"receiveShadow": true
-		}, 		
-		{
-			"edgeRadius": 1.2,
-			"texture": {
-				"top": "textures/ground_blue.png",
-				"others": "textures/ground_blue.png"
-			},
-			"material": "models/nature_asset.mtl",
-			"models": "models/nature_asset.obj",
-			"model": 8,
-			"size": [7, 6, 4],
-			"position": [-15, 2, -26],
-			"castShadow": true,
-			"receiveShadow": true			
-		}]
+			{
+				"edgeRadius": 2,
+				"texture": {
+					"top": "textures/ground_blue.png",
+					"others": "textures/ground_blue.png"
+				},
+				"material": "models/nature_asset.mtl",
+				"models": "models/nature_asset.obj",
+				"model": 12,
+				"size": [5, 7, 5],
+				"position": [-18, 0, -50],
+				"colorDepth": [0.7, 0.2, 0.8],
+				"castShadow": true,
+				"receiveShadow": true
+			}, 		
+			{
+				"edgeRadius": 2,
+				"texture": {
+					"top": "textures/ground_blue.png",
+					"others": "textures/ground_blue.png"
+				},
+				"material": "models/nature_asset.mtl",
+				"models": "models/nature_asset.obj",
+				"model": 8,
+				"size": [7, 6, 4],
+				"position": [-15, 2, -26],
+				"colorDepth": [0.6, 0.2, 1.0],		
+				"castShadow": true,
+				"receiveShadow": true			
+			}]
 	},
 	"stage": [
 		[".",".","S",".",".","."],
 		[".",".","P",".",".","."],
 		[".","P","P",".",".","."],
-		["D2","P","D2",".",".","."],
+		["D2","P","D0",".",".","."],
 		["P","P",".",".",".","."],
-		["P","D2",".",".",".","."],
+		["P","D1",".",".",".","."],
 		["P","P","P","P",".","."],
-		[".",".","D2","P","D2","."],
+		[".",".","D1","P","D0","."],
 		[".",".",".","P","P","."],
-		[".",".",".","D2","P","."],
+		[".",".",".","D0","P","."],
 		[".",".",".",".","P","P"],
-		[".",".",".",".","D2","P"],
+		[".",".",".",".","D1","P"],
 		[".","P","P","P","P","P"],
 		[".","P","D2",".",".","."],
 		[".","P","P","P",".","."],
-		[".",".","D2","P",".","."],
+		[".",".","D1","P",".","."],
 		[".",".","P","P",".","."],
 		[".",".","P","D2",".","."],
 		[".","P","P",".",".","."],
-		[".","P","D2",".",".","."],
+		[".","P","D0",".",".","."],
 		[".","P","P","P","P","D2"],
-		[".",".",".","D2","P","D2"],
+		[".",".",".","D1","P","D2"],
+		[".",".",".","P","P","."],
+		[".",".",".","P","D1","."],
+		[".",".",".","P","P","."],
+		[".",".",".","D0","P","."],
 		[".",".",".","P","P","."],
 		[".",".",".","P","D2","."],
-		[".",".",".","P","P","."],
-		[".",".",".","D2","P","."],
-		[".",".",".","P","P","."],
-		[".",".",".","P","D2","."],
-		[".",".","D2","P",".","."],
+		[".",".","D1","P",".","."],
 		[".",".",".","P","P","P"],
-		[".",".",".",".","D2","P"],
+		[".",".",".",".","D1","P"],
 		[".",".",".",".",".","P"],
 		[".",".",".","P","P","P"],
 		[".",".",".","P","D2","."],
@@ -122,12 +122,12 @@
 		[".","P","D2",".",".","."],
 		[".","P",".",".",".","."],
 		[".","P","P","P",".","."],
-		[".",".","D2","P","P","."],
+		[".",".","D0","P","P","."],
 		["P","P","P",".","P","."],
 		["P",".","P",".","P","."],
-		["P","D2","P","P","P","."],
+		["P","D1","P","P","P","."],
 		["P","P",".",".",".","."],
-		["D2","P",".",".",".","."],
+		["D1","P",".",".",".","."],
 		[".","P","P","P",".","."],
 		["P","P","D2","P","D2","."],
 		[".",".","D2","P","D2","."],
