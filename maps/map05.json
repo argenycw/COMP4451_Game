@@ -9,14 +9,14 @@
 	"sky": {
 		"size": 512,
 		"gradient": [0, 0, 0, 512],
-		"colorStop": [[0, "#030a33"], [0.8, "#18298e"], [1, "#3a4fc9"]]
+		"colorStop": [[0, "#072c68"], [0.7, "#9a74bc"], [1, "#ef7223"]]
 	},
 	"light": {
 		"ambient": {
 			"color": "#606060"
 		},
 		"sunlight": {
-			"color": "#78f",
+			"color": "#fd4",
 			"position": [-200, 80, 0]
 		}
 	},
