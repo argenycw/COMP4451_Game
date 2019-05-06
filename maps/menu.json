@@ -1,31 +1,56 @@
 {
 	"scene": {
 		"fog": {
-			"color": "#000000",
+			"color": "#a0c0ff",
 			"near": 40,
-			"far": 100
+			"far": 160
+		},
+		"particles": {
+			"source": "images/cloud.png",
+			"size": 10,
+			"count": 1600,
+			"init": [100, 30, 200],
+			"aggregate": {
+				"sector": 8,
+				"range": [30, 20, 20]
+			},
+			"spawn": "world",
+			"initRange": [400, 100, 400],
+			"velocity": [0.5, 0, 0],
+			"velocityRange": [0.25, 0, 0],
+			"upperlimit": [500, null, null]
 		}
 	},
 	"sky": {
 		"size": 512,
 		"gradient": [0, 0, 0, 512],
-		"colorStop": [[0, "#000000","."], [0.4, "#000000","."], [1, "#666666"]]
+		"colorStop": [[0, "#fd5"], [0.4, "#fe7"], [1, "#fff0ee"]]
 	},
 	"light": {
 		"ambient": {
 			"color": "#606060"
 		},
 		"sunlight": {
-			"color": "#ffffff",
-			"position": [50, 100, 0]
+			"color": "#fd5",
+			"position": [-50, 150, 500]
 		}
 	},
 	"platform": {
 		"normal": {
-			"wireframe": true
+			"edgeRadius": 2,
+			"texture": {
+				"top": "textures/temple.png",
+				"others": "textures/temple.png"
+			},
+			"receiveShadow": true
 		},
-		"destination": {	
-			"wireframe": true		
+		"destination": {
+			"edgeRadius": 2,
+			"texture": {
+				"top": "textures/dest.jpg",
+				"others": "textures/dest.jpg"
+			},
+			"receiveShadow": true			
 		}
 	},
 	"stage": [

@@ -278,7 +278,8 @@ function getMapElement(z, x, readSign=true) {
 }
 
 // Create a single rectangular platform
-function renderPlatform(platformAttr, rx=1, ry=1, rz=1) {
+function renderPlatform(platformAttr, menuCall=false, rx=1, ry=1, rz=1) {
+	var loader = menuCall ? m_resourceLoader : resourceLoader;
 	// Special scene: all platforms are in wireframe
 	if (platformAttr.wireframe) {
 		var geometry = new THREE.CubeGeometry(c_PlatformSize[0] * rx, c_PlatformSize[1] * ry, c_PlatformSize[2] * rz);
@@ -292,8 +293,8 @@ function renderPlatform(platformAttr, rx=1, ry=1, rz=1) {
 		var radius = platformAttr.edgeRadius ? platformAttr.edgeRadius : c_PlatformDefRadius;
 		var box = RoundEdgedBox(c_PlatformSize[0] * rx, c_PlatformSize[1] * ry, c_PlatformSize[2] * rz, radius);
 		// var box = new THREE.CubeGeometry(c_PlatformSize[0], c_PlatformSize[1], c_PlatformSize[2]);
-		var textureTop = new THREE.MeshLambertMaterial({map: resourceLoader.textures[source.top]});
-		var textureSide = new THREE.MeshLambertMaterial({map: resourceLoader.textures[source.others]});
+		var textureTop = new THREE.MeshLambertMaterial({map: loader.textures[source.top]});
+		var textureSide = new THREE.MeshLambertMaterial({map: loader.textures[source.others]});
 		var materials = [textureSide, textureSide, textureSide, textureSide, textureTop, textureSide];
 		var platform = new THREE.Mesh(box, materials);
 		platform.receiveShadow = platformAttr.receiveShadow;
@@ -370,7 +371,7 @@ function setLight(lightObject) {
 }
 
 // platforms: 2D array representing the map
-function buildPlatforms(stage, platformAttr) {
+function buildPlatforms(stage, platformAttr, menuCall=false) {
 	currentMap = [];
 	dynamicPlatformsList = [];
 	for (var i = 0; i < stage.length; i++) {
@@ -380,14 +381,14 @@ function buildPlatforms(stage, platformAttr) {
 		for (var j = 0; j < row.length; j++) {
 			switch (row[j][0]) {
 			case 'P': // Normal platform
-				var platform = renderPlatform(platformAttr.normal);
+				var platform = renderPlatform(platformAttr.normal, menuCall);
 				platform.type = platformTypes.NORMAL;
 				platform.position.set(j * (c_PlatformSize[0] + c_PlatformSep), 0, i * (c_PlatformSize[2] + c_PlatformSep));
 				scene.add(platform);
 				mapRow.push(platform);
 				break;
 			case 'S': // Starting platform
-				var platform = renderPlatform(platformAttr.normal);
+				var platform = renderPlatform(platformAttr.normal, menuCall);
 				var type = parseInt(row[j][1]);
 				platform.type = platformTypes.NORMAL;
 				var x_mid = j * (c_PlatformSize[0] + c_PlatformSep);
@@ -414,8 +415,8 @@ function buildPlatforms(stage, platformAttr) {
 				break;
 			case 'F': // Destination
 			 	var platform;
-				if (platformAttr.destination) platform = renderPlatform(platformAttr.destination);
-				else platform = renderPlatform(platformAttr.normal);
+				if (platformAttr.destination) platform = renderPlatform(platformAttr.destination, menuCall);
+				else platform = renderPlatform(platformAttr.normal, menuCall);
 				platform.type = platformTypes.DESTINATION;
 				platform.position.set(j * (c_PlatformSize[0] + c_PlatformSep), 0, i * (c_PlatformSize[2] + c_PlatformSep));
 				// use sprite to make the desination "glow"
@@ -448,8 +449,8 @@ function buildPlatforms(stage, platformAttr) {
 			case 'H': // Horizontal moving platform
 			 	var platform;
 			 	var range = (row[j].length > 1) ? parseInt(row[j][1]) : 1;
-				if (platformAttr.horizontal) platform = renderPlatform(platformAttr.horizontal);
-				else platform = renderPlatform(platformAttr.normal);
+				if (platformAttr.horizontal) platform = renderPlatform(platformAttr.horizontal, menuCall);
+				else platform = renderPlatform(platformAttr.normal, menuCall);
 				platform.type = platformTypes.HORIZONTAL;
 				platform.position.set(j * (c_PlatformSize[0] + c_PlatformSep), 0, i * (c_PlatformSize[2] + c_PlatformSep));
 				platform.initX = platform.position.x;
@@ -478,8 +479,8 @@ function buildPlatforms(stage, platformAttr) {
 			case 'Z': // Horizontal (Z) moving platform
 				var platform;
 			 	var range = (row[j].length > 1) ? parseInt(row[j][1]) : 1;
-				if (platformAttr.horizontal) platform = renderPlatform(platformAttr.horizontal);
-				else platform = renderPlatform(platformAttr.normal);
+				if (platformAttr.horizontal) platform = renderPlatform(platformAttr.horizontal, menuCall);
+				else platform = renderPlatform(platformAttr.normal, menuCall);
 				platform.type = platformTypes.HORIZONTAL;
 				platform.position.set(j * (c_PlatformSize[0] + c_PlatformSep), 0, i * (c_PlatformSize[2] + c_PlatformSep));
 				platform.initZ = platform.position.z;
@@ -508,8 +509,8 @@ function buildPlatforms(stage, platformAttr) {
 			case 'V': // vertical moving platforms
 				var platform;
 			 	var range = (row[j].length > 1) ? parseInt(row[j][1]) : 1;
-				if (platformAttr.vertical) platform = renderPlatform(platformAttr.vertical);
-				else platform = renderPlatform(platformAttr.normal);
+				if (platformAttr.vertical) platform = renderPlatform(platformAttr.vertical, menuCall);
+				else platform = renderPlatform(platformAttr.normal, menuCall);
 				platform.type = platformTypes.VERTICAL;
 				platform.position.set(j * (c_PlatformSize[0] + c_PlatformSep), 0, i * (c_PlatformSize[2] + c_PlatformSep));
 				platform.initY = platform.position.y;

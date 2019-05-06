@@ -30,6 +30,7 @@ var animationInterval = null;
 function menuAnimate() {
 	camera.position.set(center + 50*Math.sin(angle*3.14/180), 20, center - 50*Math.cos(angle*3.14/180));
 	camera.lookAt(center - 50*Math.sin(angle*3.14/180), 0, center + 50*Math.cos(angle*3.14/180));
+	if (particleSystem) particleSystem.updateParticles();
 	renderer.render(scene, camera);
 	angle = (angle+0.1)%360;
 }
@@ -59,7 +60,12 @@ function menuOnSuccessLoad(content) {
  	setLight(content.light);
  	// Render the platforms
 	center = 14 * m_resourceLoader.map.stage.length / 2;
- 	buildPlatforms(content.stage, content.platform);
+ 	buildPlatforms(content.stage, content.platform, true);
+ 	// Set the particle system if it exists
+	let particleSystemSetup = content.scene.particles;
+	if (particleSystemSetup) {
+		particleSystemInit(particleSystemSetup);
+	}
  	// Set the interval with a specific FPS
  	animationInterval = setInterval(function() {requestAnimationFrame(menuAnimate);}, 1000 / (c_FPS/3));
 }
@@ -303,7 +309,7 @@ function showSetting() {
 }
 
 function menuWaitUntilLoaded() {
-	if (m_resourceLoader.map && g_resourceLoader.allSoundEffectsLoaded()) {
+	if (m_resourceLoader.map && m_resourceLoader.allTexturesLoaded()) {
 		widget.clearLoadingScreen();
 		menuOnSuccessLoad(m_resourceLoader.map);
 		showMainDialog();
