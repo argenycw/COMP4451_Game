@@ -1,0 +1,99 @@
+{
+	"scene": {
+		"fog": {
+			"color": "#fb2",
+			"near": 100,
+			"far": 200
+		}
+	},
+	"sky": {
+		"size": 512,
+		"gradient": [0, 0, 0, 512],
+		"colorStop": [[0, "#fb2"], [0.4, "#fb2"], [1, "#f93"]]
+	},
+	"light": {
+		"ambient": {
+			"color": "#606060"
+		},
+		"sunlight": {
+			"color": "#fd5",
+			"position": [-50, 150, 500]
+		}
+	},
+	"platform": {
+		"normal": {
+			"edgeRadius": 2,
+			"texture": {
+				"top": "textures/rock2.png",
+				"others": "textures/rock2.png"
+			},
+			"receiveShadow": true
+		},
+		"destination": {
+			"edgeRadius": 2,
+			"texture": {
+				"top": "textures/dest2.png",
+				"others": "textures/dest2.png"
+			},
+			"receiveShadow": true			
+		},
+		"decoration": [{
+				"edgeRadius": 2,
+				"texture": {
+					"top": "textures/rock2.png",
+					"others": "textures/rock2.png"
+				},
+				"material": "models/nature_asset.mtl",
+				"models": "models/nature_asset.obj",
+				"model": 11,
+				"size": [6, 6, 6],
+				"position": [-20, 0, -60],
+				"castShadow": true,
+				"receiveShadow": true
+			},
+			{
+				"edgeRadius": 2,
+				"texture": {
+					"top": "textures/rock2.png",
+					"others": "textures/rock2.png"
+				},
+				"material": "models/nature_asset.mtl",
+				"models": "models/nature_asset.obj",
+				"model": 12,
+				"size": [5, 7, 5],
+				"position": [-18, 0, -50],
+				"castShadow": true,
+				"receiveShadow": true
+			}, 		
+			{
+				"edgeRadius": 2,
+				"texture": {
+					"top": "textures/rock2.png",
+					"others": "textures/rock2.png"
+				},
+				"material": "models/nature_asset.mtl",
+				"models": "models/nature_asset.obj",
+				"model": 8,
+				"size": [7, 6, 4],
+				"position": [-15, 2, -26],		
+				"castShadow": true,
+				"receiveShadow": true			
+			}			
+		]
+	},
+	"stage": [
+		[".",".",".","S",".",".",".",".",".",".",".","."],
+		[".",".","D2","P","P","P","P","P","P","P",".","."],
+		[".",".",".",".",".","D1",".",".","D1","P",".","."],
+		[".",".",".","D0","P","P","P","P",".","P",".","."],
+		[".",".",".","P",".","P",".","P",".","P",".","."],
+		[".",".",".","P",".","P",".","P",".","P",".","."],
+		[".","F","P","P",".","P",".","P",".","P",".","."],
+		[".","D2",".","P",".","P",".","P",".","P",".","."],
+		[".",".",".","P","P","P","D2","P","D1","P",".","."],
+		[".",".",".","D0",".","D0",".","P",".","P",".","."],
+		[".",".",".","P","P","P","P","P",".","P",".","."],
+		[".",".",".","P",".",".",".",".",".","P",".","."],
+		[".",".","D1","P","P","P","P","P","P","P","D0","."]				
+	]
+}
