@@ -56,6 +56,8 @@ var losingY = -100;					// The minimum y the player can reach not to lose
 var colliding = false;
 var alt = false;
 
+var particleSystem = null;
+
 // ==================================================================
 function animate() {
 	// requestAnimationFrame(animate);
@@ -83,6 +85,7 @@ function animate() {
 		alt = !alt;
 	}
 
+	if (particleSystem) particleSystem.updateParticles();
 	renderer.render(scene, camera);
 }
 
@@ -104,10 +107,16 @@ function stageInit(sceneObject) {
 	camera.lookAt(new THREE.Vector3(0, 0, 20));
 
 	// make the "fog"
-	var fogAttr = sceneObject.fog;
+	let fogAttr = sceneObject.fog;
 	if (fogAttr) {
 		scene.fog = new THREE.Fog(fogAttr.color, fogAttr.near, fogAttr.far);
 		losingY = -100;
+	}
+
+	// generate particle system
+	let particleSystemSetup = sceneObject.particles;
+	if (particleSystemSetup) {
+		particleSystemInit(particleSystemSetup);
 	}
 
 	// AudioListener for audio
@@ -124,6 +133,77 @@ function stageInit(sceneObject) {
 	// Listener for keyboard input
 	document.addEventListener("keydown", onKeyDown);
 	return;
+}
+
+function particleSystemInit(setup) {
+	if (!setup) return;
+	// fetch all attributes information from setup
+	let source = setup.source;
+	let size = (setup.size ? setup.size : 1);
+	let count = (setup.count ? setup.count : 100);
+	let initPos = (setup.init ? setup.init : [0, 0, 0]);
+	let initRange = (setup.initRange ? setup.initRange : [0, 0, 0]);
+	let initVelocity = (setup.velocity ? setup.velocity : [0, 0, 0]);
+	let velocityRange = (setup.velocityRange ? setup.velocityRange : [0, 0, 0]);
+	let upperlimit = (setup.upperlimit ? setup.upperlimit : null); // limit: the max position (x/y/z) the particles can reach
+	let lowerlimit = (setup.lowerlimit ? setup.lowerlimit : null);
+	let lifespan = (setup.lifespan ? setup.lifespan : 999999); // lifespan: the number of frames to survive, infinity by default
+
+	// create the particle variables
+	var particles = new THREE.Geometry();
+	let img = new THREE.TextureLoader().load(source);
+	let pMaterial = new THREE.PointsMaterial({
+		size: size, 
+		transparent: true, 
+		depthWrite: false, 
+		blending: THREE.AdditiveBlending, 
+		map: img
+	});
+
+	function reachLimit(x, y, z) {
+		let coord = [x, y, z];
+		for (let i = 0; i < 3; i++) {
+			if (upperlimit && upperlimit[i] && coord[i] > upperlimit[i]) return true;
+			if (lowerlimit && lowerlimit[i] && coord[i] < lowerlimit[i]) return true;
+		}
+		return false;	
+	}
+
+	function createParticle() {
+		// create a particle with random position values
+		let pX = initPos[0] + (Math.random() - 0.5) * initRange[0];
+		let pY = initPos[1] + (Math.random() - 0.5) * initRange[1];
+		let pZ = initPos[2] + (Math.random() - 0.5) * initRange[2];
+		var particle = new THREE.Vector3(pX, pY, pZ);
+		particle.lifespan = lifespan;		
+		return particle;
+	}
+
+	// now create the individual particles
+	for (var p = 0; p < count; p++) {
+		let particle = createParticle();
+		// add it to the geometry
+		particles.vertices.push(particle);
+	}
+
+	// create the particle system
+	particleSystem = new THREE.Points(particles, pMaterial);
+	// set the update function in animate
+	particleSystem.updateParticles = () => {
+		for (var i = 0; i < count; i++) {
+			particles.vertices[i].x += initVelocity[0] + (Math.random() - 0.5) * velocityRange[0];
+			particles.vertices[i].y += initVelocity[1] + (Math.random() - 0.5) * velocityRange[1];
+			particles.vertices[i].z += initVelocity[2] + (Math.random() - 0.5) * velocityRange[2];
+			particles.vertices[i].lifespan--;
+			if (particles.vertices[i].lifespan < 0 || reachLimit(particles.vertices[i].x, particles.vertices[i].y
+				, particles.vertices[i].z)) {
+				// remove this particle, and create another new particle at initPos
+				particles.vertices[i] = createParticle();
+			}
+		}
+		particles.verticesNeedUpdate = true;
+	}
+	scene.add(particleSystem);
 }
 
 
