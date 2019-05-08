@@ -4,6 +4,21 @@
 			"color": "#222",
 			"near": 50,
 			"far": 180
+		},
+		"particles": {
+			"source": "images/cloud_black.png",
+			"size": 8,
+			"count": 1000,
+			"init": [-40, 30, 200],
+			"aggregate": {
+				"sector": 8,
+				"range": [22, 6, 20]
+			},
+			"spawn": "world",
+			"initRange": [100, 60, 250],
+			"velocity": [0.1, 0, 0],
+			"velocityRange": [0.05, 0, 0],
+			"upperlimit": [220, null, null]
 		}
 	},
 	"sky": {
@@ -16,7 +31,7 @@
 			"color": "#656550"
 		},
 		"sunlight": {
-			"color": "#dc6",
+			"color": "#641",
 			"position": [-300, 80, 0]
 		}
 	},
