@@ -116,9 +116,9 @@ function stageBegin() {
 function stageEnd() {
 	console.log("Stage finishes.");
 	if (resourceLoader.environment) resourceLoader.environment.stop();
-	resourceLoader.song.volume = 1.0;
+	//resourceLoader.song.volume = 1.0;
 	if (widget.screen.contains(explosion)) widget.screen.removeChild(explosion);
-	pauseSong();
+	//pauseSong();
 	songStarted = false;
 	canCheckNextNote = false;
 	return;
