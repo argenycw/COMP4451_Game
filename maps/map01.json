@@ -62,7 +62,7 @@
 			"models": "models/nature_asset.obj",
 			"model": 5,
 			"size": [6, 15, 6],
-			"position": [-2, 3, 6],
+			"position": [-2, 3, 6],		
 			"castShadow": true,
 			"receiveShadow": true
 		},
@@ -76,8 +76,7 @@
 			"models": "models/nature_asset.obj",
 			"model": 18,
 			"size": [8, 15, 8],
-			"position": [-2.5, 2.5, 0],
-			"colorDepth": [2, 2, 2],			
+			"position": [-2.5, 2.5, 0],		
 			"castShadow": true,
 			"receiveShadow": true
 		}, 		

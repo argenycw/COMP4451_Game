@@ -2,21 +2,21 @@
 	"scene": {
 		"fog": {
 			"color": "#180010",
-			"near": 40,
+			"near": 50,
 			"far": 100
 		}
 	},
 	"sky": {
 		"size": 512,
 		"gradient": [0, 0, 0, 512],
-		"colorStop": [[0, "#9f75ee"], [0.4, "#9475ee"], [1, "#b282ff"]]
+		"colorStop": [[0, "#402030"], [0.4, "#402030"], [1, "#9060d0"]]
 	},
 	"light": {
 		"ambient": {
 			"color": "#606060"
 		},
 		"sunlight": {
-			"color": "#ffffaa",
+			"color": "#606060",
 			"position": [100, 80, 0]
 		}
 	},
@@ -37,36 +37,35 @@
 			},
 			"receiveShadow": true			
 		},
-		"decoration": [{
-			"edgeRadius": 1.2,
-			"texture": {
-				"top": "textures/ground_purple.png",
-				"others": "textures/ground_purple.png"
-			},
-			"material": "models/nature_asset.mtl",
-			"models": "models/nature_asset.obj",
-			"model": 5,
-			"size": [6, 15, 6],
-			"position": [-2, 3, 6],
-			"colorDepth": [10, 10, 10],
-			"castShadow": true,
-			"receiveShadow": true
-		},
+		"decoration": [
 		{
-			"edgeRadius": 1.2,
+			"edgeRadius": 2,
 			"texture": {
 				"top": "textures/ground_purple.png",
 				"others": "textures/ground_purple.png"
 			},
 			"material": "models/nature_asset.mtl",
 			"models": "models/nature_asset.obj",
-			"model": 18,
-			"size": [8, 15, 8],
-			"colorDepth": [2, 2, 2],
-			"position": [-2.5, 2.5, 0],
+			"model": 8,
+			"size": [7, 6, 4],
+			"position": [-15, 2, -26],
+			"colorDepth": [0.6, 0.2, 1.0],		
 			"castShadow": true,
-			"receiveShadow": true
-		}, 		
+			"receiveShadow": true	
+		}, 	
+		{
+			"edgeRadius": 2,
+			"texture": {
+				"top": "textures/ground_purple.png",
+				"others": "textures/ground_purple.png"
+			},
+			"models": "models/crystal.glb",
+			"model": 0,
+			"size": [4, 7, 4],
+			"position": [0, 3, 0],	
+			"castShadow": true,
+			"receiveShadow": true		
+		},
 		{
 			"edgeRadius": 1.2,
 			"texture": {
@@ -80,30 +79,59 @@
 			"position": [-15, 2, -26],
 			"castShadow": true,
 			"receiveShadow": true			
-		}]
+		},
+		{
+			"edgeRadius": 1.2,
+			"texture": {
+				"top": "textures/ground_purple.png",
+				"others": "textures/ground_purple.png"
+			},
+			"material": "models/Barrel.mtl",
+			"models": "models/Barrel.obj",
+			"model": 2,
+			"size": [7, 6, 7],
+			"position": [-8, 3, 0],
+			"castShadow": true,
+			"receiveShadow": true			
+		},
+		{
+			"edgeRadius": 1.2,
+			"texture": {
+				"top": "textures/ground_purple.png",
+				"others": "textures/ground_purple.png"
+			},
+			"material": "models/Barrel.mtl",
+			"models": "models/Barrel.obj",
+			"model": 0,
+			"size": [5, 7, 5],
+			"position": [2, 2, 8],
+			"castShadow": true,
+			"receiveShadow": true				
+		}
+	]
 	},
 	"stage": [
-		[".",".","D0","D0","P","S","P","P","D0","D0",".","."],
-		[".",".","D0","D0","P","P","D0","P","D0","D0",".","."],
-		[".",".","D0","D0","D0","P","D0","D0","D0","D0",".","."],
-		[".",".","D0","D0","D0","P","P","D0","D0","D0",".","."],
-		[".",".",".","D1","D2","D2","P","D2","D0",".",".","."],
+		[".",".","D0","D1","P","S","P","P","D0","D0",".","."],
+		[".",".","D1","D0","P","P","D4","P","D1","D0",".","."],
+		[".",".","D0","D0","D4","P","D3","D1","D0","D0",".","."],
+		[".",".","D1","D0","D0","P","P","D0","D0","D0",".","."],
+		[".",".",".","D1","D2","D2","P","D2","D1",".",".","."],
 		[".",".",".","D0","P","P","P","P","D0",".",".","."],
-		[".",".",".","D0","D0","D0","P","P","D0",".",".","."],
-		[".","D0","D1","P","P","P","P","P","D0",".",".","."],
-		[".",".","D0","P","D2","P","D0","P","D0",".",".","."],
-		[".",".","D0","P","D0","P","P","P","P","D0",".","."],
-		[".",".",".",".","D0","P","P","P","P","D0",".","."],
+		[".",".",".","D1","D0","D0","P","P","D0",".",".","."],
+		[".","D0","D1","P","P","P","P","P","D1",".",".","."],
+		[".",".","D0","P","D2","P","D4","P","D0",".",".","."],
+		[".",".","D0","P","D3","P","P","P","P","D0",".","."],
+		[".",".",".",".","D1","P","P","P","P","D0",".","."],
 		[".",".",".",".",".",">","H1","<","D1",".",".","."],
 		[".",".",".",".",".","D1","P","P",".","P",".","."],
-		[".",".",".",".","D0","P","P","P","D1","D0",".","."],
-		[".",".",".","D0","P","P","P","P","P","P","D0","."],		
+		[".",".",".",".","D3","P","P","P","D1","D0",".","."],
+		[".",".",".","D0","P","P","P","P","P","P","D4","."],		
 		[".",".",".","D0","P",".","D1","P","P","D0",".","."],
 		[".",".","D0","P","P",".",".","P","P","D0",".","."],
 		[".",".",".","D0","P",".",".","P",".","D0",".","."],
-		[".",".",".","D0","P","D1","P","P","D0",".",".","."],
+		[".",".",".","D4","P","D1","P","P","D0",".",".","."],
 		[".",".",".","D0","P","P","P","P","D0",".",".","."],		
-		[".",".",".",".","D0","P","D1","D0","P",".",".","."],
+		[".",".",".",".","D0","P","D4","D0","P",".",".","."],
 		[".",".",".",".","D0","P","P",".","P",".",".","."],
 		[".",".",".",".","D0","P","P",".",".",".",".","."],
 		[".",".",".",".",".","D0","F",".",".",".",".","."],		

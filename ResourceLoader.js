@@ -245,12 +245,11 @@ function ResourceLoader(mapFile="", themeFile="", stageFile="", mapFolder="", th
 							function (object) {
 								// To increase the saturation of the color, if specified
 								// it is placed here instead of stage->renderDecoration so as to avoid 
-								// duplicated color multiplication, because there is only ONE material (by reference)						  
+								// duplicated color multiplication, because there is only ONE material (by reference)	
 								if (deco.colorDepth) {
 									let obj = object.children[deco.model];
 									if (obj.material.constructor == Array) {
 										for (let j = 0; j < obj.material.length; j++) {
-											console.log(obj.material[j].color);
 											obj.material[j].color.r *= deco.colorDepth[0];
 											obj.material[j].color.g *= deco.colorDepth[1];
 											obj.material[j].color.b *= deco.colorDepth[2];
@@ -296,10 +295,23 @@ function ResourceLoader(mapFile="", themeFile="", stageFile="", mapFolder="", th
 					else if (request.readyState == 4) {
 						// TODO handle if theme is not found
 						alert("Unable to find or open file: " + stageFile);
+						loader.decorationsToLoad--;
 						return;
 					}
 				}
 				request.send();	
+			}
+			else if (deco.models.endsWith(".glb") || deco.models.endsWith(".gltf")) {
+				var gltfLoader = new THREE.GLTFLoader();
+				gltfLoader.load(deco.models, function (gltf) {
+					// ensure every mesh of the model will cast shadow
+					gltf.scene.traverse(node => {if (node instanceof THREE.Mesh) {node.castShadow = true;}});
+					console.log(gltf.scene);
+					loader.decorations[deco.models] = gltf.scene;	
+				}, undefined, function (error) {
+					console.error(error);
+					loader.decorationsToLoad--;
+				});
 			}
 			// temporarily mark it as TRUE
 			this.decorations[deco.models] = true;
